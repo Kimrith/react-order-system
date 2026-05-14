@@ -52,10 +52,36 @@ export const postOrder = async (orderData) => {
   return await res.json();
 };
 
-// export const getOrders = async () => {
-//   const res = await fetch(`${API_URL}/Orders`);
-//   if (!res.ok) {
-//     throw new Error("Failed to fetch orders");
-//   }
-//   return await res.json();
-// };
+export const generateKHQR = async (paymentData) => {
+  try {
+    const res = await fetch(`${API_URL}/generate-khqr`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json", // Tell the server you expect JSON back
+      },
+      body: JSON.stringify(paymentData),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || `Server error: ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("KHQR Generation Error:", error);
+    throw error; // Re-throw so the UI can show an error message
+  }
+};
+
+// get QR Code image from invoice
+export const getQrCode = async (invoice) => {
+  const res = await fetch(`${API_URL}/qr-image/${invoice}`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch QR image");
+  }
+
+  return await res.blob(); // ✅ FIX HERE
+};

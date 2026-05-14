@@ -170,7 +170,7 @@ export default function Product() {
           onClick={handleCheckout}
           className="bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-3 rounded-2xl shadow-xl"
         >
-          Checkout
+          Cash
         </button>
       </div>
     </div>
