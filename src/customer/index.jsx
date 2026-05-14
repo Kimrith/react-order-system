@@ -6,6 +6,7 @@ import CategoriesId from "./byId/categoriesId";
 import Product from "./components/product";
 import Header from "./components/header";
 import CartOrder from "./components/cartorder";
+import PaymentSuccess from "../share/paymentSuccess";
 
 export default function Index() {
   return (
@@ -23,6 +24,7 @@ export default function Index() {
             </ProtectedRoute>
           }
         />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
       </Routes>
     </BrowserRouter>
   );

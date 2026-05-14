@@ -4,13 +4,14 @@ import ProductOrder from "../../share/productOrder";
 import OrderSummary from "../../share/order_summary";
 import { Link, useNavigate } from "react-router-dom";
 import Bakong from "../../share/bakong";
-import { generateKHQR, getQrCode } from "../api/api";
+import { generateKHQR, getQrCode, postOrder } from "../api/api";
 
 export default function CartOrder() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [qrCode, setQrCode] = useState(null);
+  const [invoice, setInvoice] = useState(null);
 
   // ✅ 1. LOAD DATA
   useEffect(() => {
@@ -61,28 +62,45 @@ export default function CartOrder() {
         expiryDate: new Date(Date.now() + 5 * 60000).toISOString(),
       };
 
-      // 1️⃣ Generate KHQR
       const response = await generateKHQR(paymentData);
-      console.log("KHQR response:", response);
+      const inv = response.invoice;
 
-      const invoice = response.invoice;
-
-      if (!invoice) {
-        alert("Invoice not found");
+      if (!inv) {
+        alert("Invoice not generated");
         return;
       }
 
-      // 2️⃣ Get QR IMAGE
-      const qrBlob = await getQrCode(invoice);
-
-      // 3️⃣ Convert blob → image URL
+      const qrBlob = await getQrCode(inv);
       const qrUrl = URL.createObjectURL(qrBlob);
 
+      setInvoice(inv); // ✅ Save invoice ID
       setQrCode(qrUrl);
       setIsOpen(true);
     } catch (err) {
-      console.error(err);
       alert("Could not generate QR");
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    try {
+      const orderPayload = {
+        invoiceNumber: invoice,
+        items: cartItems,
+        totalAmount: total,
+        status: "Paid",
+        createdAt: new Date().toISOString(),
+      };
+
+      await postOrder(orderPayload); // Send to your database
+
+      alert("🎉 Payment Successful! Your order has been placed.");
+      localStorage.removeItem("my_order"); // Clear cart
+      navigate("/"); // Go home
+    } catch (err) {
+      console.error("Database save error:", err);
+      alert(
+        "Payment was received, but we failed to save the order. Please contact support.",
+      );
     }
   };
 
@@ -115,24 +133,6 @@ export default function CartOrder() {
             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-widest">
               Payment Method
             </h3>
-            <div className="bg-[#1A202E] border-2 border-[#FFBB33] p-4 rounded-2xl flex items-center gap-4 shadow-[0_0_15px_rgba(255,187,51,0.1)]">
-              <div className="bg-[#FFBB33] p-2 rounded-lg">
-                <div className="grid grid-cols-2 gap-0.5 w-5 h-5">
-                  <div className="border border-[#1A202E] w-2 h-2"></div>
-                  <div className="border border-[#1A202E] w-2 h-2"></div>
-                  <div className="border border-[#1A202E] w-2 h-2"></div>
-                  <div className="border border-[#1A202E] w-2 h-2"></div>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-[#FFBB33] font-bold text-base leading-tight">
-                  KHQR
-                </h4>
-                <p className="text-gray-500 text-xs font-medium">
-                  Digital Bakong
-                </p>
-              </div>
-            </div>
           </div>
 
           <div className="flex gap-4">
@@ -157,7 +157,9 @@ export default function CartOrder() {
           cartItems={cartItems}
           total={total}
           qrCode={qrCode}
+          invoice={invoice}
           onClose={() => setIsOpen(false)}
+          onPaymentSuccess={handlePaymentSuccess}
         />
       )}
     </div>

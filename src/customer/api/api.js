@@ -85,3 +85,10 @@ export const getQrCode = async (invoice) => {
 
   return await res.blob(); // ✅ FIX HERE
 };
+
+// Check payment status
+export const checkPaymentStatus = async (invoice) => {
+  const res = await fetch(`${API_URL}/check-payment/${invoice}`);
+  if (!res.ok) return null; // Handle 404/errors gracefully
+  return await res.json();
+};
