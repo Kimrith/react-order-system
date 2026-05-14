@@ -2,14 +2,19 @@ import React from "react";
 import Search from "../../share/search";
 import Categories from "./categories";
 import Product from "./product";
+import CategoriesId from "../byId/categoriesId";
+import { Outlet } from "react-router-dom";
+import Order from "./order";
+import { Link } from "react-router-dom";
 
-export default function PosInterface() {
-  // Sample Data for the view (Can be moved to state/props)
-
+export default function Header() {
   return (
-    // Main Container (Dark background)
-    <div className="min-h-screen bg-[#1A202E] font-sans">
-      <div className="max-w-7xl mx-auto p-6 md:p-8">
+    <div className="bg-[#1A202E] min-h-screen font-sans relative">
+      {" "}
+      {/* Added relative */}
+      <div className="max-w-7xl mx-auto p-6 md:p-8 pb-32">
+        {" "}
+        {/* Added bottom padding so content isn't hidden behind the bar */}
         {/* 1. Header Section */}
         <header className="flex justify-between items-center mb-6">
           <div>
@@ -24,20 +29,23 @@ export default function PosInterface() {
             </p>
           </div>
 
-          {/* Cafe POS Badge */}
-          <div className="bg-[#2D3748] border border-[#4A5568] px-5 py-2.5 rounded-full shadow-inner">
+          <div className="bg-[#2D3748] border border-[#4A5568] px-5 py-2.5 rounded-full">
             <h3 className="text-[#FFBB33] text-sm font-bold uppercase tracking-widest">
               CAFÉ POS
             </h3>
           </div>
         </header>
-
-        {/* 2. Search Bar Section */}
+        {/* 2. Search & Categories */}
         <Search />
-        {/* 3. Category Filter Section (Matches Image structure) */}
         <Categories />
-        {/* 4. Product Grid Section */}
-        <Product />
+        {/* 3. Product List / Nested Routes */}
+        <Outlet />
+      </div>
+      {/* 4. Order Section (Moved outside the padding container) */}
+      <div className="justify-center text-center">
+        <Link to="/cart">
+          <Order />
+        </Link>
       </div>
     </div>
   );
