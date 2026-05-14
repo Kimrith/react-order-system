@@ -1,5 +1,5 @@
 import React from "react";
-import Index from "./staff";
+import Index from "./customer";
 
 export default function App() {
   return <Index />;
