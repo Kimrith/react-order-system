@@ -10,22 +10,20 @@ import PaymentSuccess from "../share/paymentSuccess";
 
 export default function Index() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Header />}>
-          <Route path="/" element={<Product />} />
-          <Route path="/categories/:id" element={<CategoriesId />} />
-        </Route>
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <CartOrder />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route element={<Header />}>
+        <Route path="/" element={<Product />} />
+        <Route path="/categories/:id" element={<CategoriesId />} />
+      </Route>
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <CartOrder />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+    </Routes>
   );
 }
