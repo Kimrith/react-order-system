@@ -94,8 +94,9 @@ export default function CartOrder() {
       await postOrder(orderPayload); // Send to your database
 
       alert("🎉 Payment Successful! Your order has been placed.");
-      localStorage.removeItem("my_order"); // Clear cart
-      navigate("/"); // Go home
+      navigate("/payment-success");
+      // localStorage.removeItem("my_order");
+      // navigate("/");
     } catch (err) {
       console.error("Database save error:", err);
       alert(

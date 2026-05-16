@@ -92,3 +92,17 @@ export const checkPaymentStatus = async (invoice) => {
   if (!res.ok) return null; // Handle 404/errors gracefully
   return await res.json();
 };
+
+// Search products by name
+export const searchProductsByName = async (name) => {
+  // encodeURIComponent ensures spaces or special characters don't break the URL
+  const res = await fetch(
+    `${API_URL}/Product?name=${encodeURIComponent(name)}`,
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to search products");
+  }
+
+  return res.json();
+};
