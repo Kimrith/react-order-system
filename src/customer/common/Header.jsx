@@ -1,13 +1,14 @@
 import React from "react";
-import Search from "../../share/search";
-import Categories from "./categories";
-import Product from "./product";
-import CategoriesId from "../byId/categoriesId";
+import Search from "./Search";
+import Categories from "../features/components/Categories";
 import { Outlet } from "react-router-dom";
-import Order from "./order";
+import Order from "../features/components/Order";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function Header() {
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
     <div className="bg-[#1A202E] min-h-screen font-sans relative">
       {" "}
@@ -36,10 +37,10 @@ export default function Header() {
           </div>
         </header>
         {/* 2. Search & Categories */}
-        <Search />
+        <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         <Categories />
         {/* 3. Product List / Nested Routes */}
-        <Outlet />
+        <Outlet context={{ searchQuery }} />
       </div>
       {/* 4. Order Section (Moved outside the padding container) */}
       <div className="justify-center text-center">

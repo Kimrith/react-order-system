@@ -36,7 +36,7 @@ export default function ProductOrder({ items = [], onUpdateQty }) {
               <h3 className="font-bold text-lg text-white">
                 {item.productName}
               </h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400 line-clamp-2">
                 {item.description || "No description"}
               </p>
               <p className="text-[#FFBB33] font-extrabold text-xl mt-2">

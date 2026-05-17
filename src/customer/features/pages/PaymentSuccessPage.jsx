@@ -28,6 +28,10 @@ export default function PaymentSuccess() {
     0,
   );
 
+  const clearlocalStorage = () => {
+    localStorage.removeItem("my_order");
+  };
+
   return (
     <div className="w-full bg-[#1A202E] flex items-center justify-center p-4 font-sans text-white">
       <div className="bg-[#242C45] w-full max-w-md p-8 border border-white/5 shadow-2xl animate-in fade-in zoom-in duration-500">
@@ -119,7 +123,10 @@ export default function PaymentSuccess() {
 
         {/* BACK BUTTON */}
         <Link to="/">
-          <button className="w-full bg-transparent border border-white/10 hover:bg-white/5 py-4 rounded-2xl flex items-center justify-center gap-2 transition active:scale-95 group">
+          <button
+            onClick={clearlocalStorage}
+            className="w-full bg-transparent border border-white/10 hover:bg-white/5 py-4 rounded-2xl flex items-center justify-center gap-2 transition active:scale-95 group"
+          >
             <Home size={18} className="text-gray-400 group-hover:text-white" />
             <span className="font-bold text-gray-300 group-hover:text-white">
               Back to Menu

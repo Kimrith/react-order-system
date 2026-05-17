@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
-import { checkPaymentStatus } from "../customer/api/api";
+import { checkPaymentStatus } from "../services/customerApi";
 
 export default function Bakong({
   total,

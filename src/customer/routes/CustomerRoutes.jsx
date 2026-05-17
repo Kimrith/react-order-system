@@ -1,0 +1,29 @@
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "../../auth/ProtectedRoute";
+
+import CategoriesId from "../features/pages/CategoryDetailsPage";
+import Product from "../features/pages/ProductsPage";
+import Header from "../common/Header";
+import CartOrder from "../features/pages/CartOrderPage";
+import PaymentSuccess from "../features/pages/PaymentSuccessPage";
+
+export default function Index() {
+  return (
+    <Routes>
+      <Route element={<Header />}>
+        <Route path="/" element={<Product />} />
+        <Route path="/categories/:id" element={<CategoriesId />} />
+      </Route>
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <CartOrder />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+    </Routes>
+  );
+}
