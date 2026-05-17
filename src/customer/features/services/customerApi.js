@@ -3,35 +3,27 @@ const API_URL = import.meta.env.VITE_API_URL;
 // list all categories
 export const getCategories = async () => {
   const response = await fetch(`${API_URL}/Categories`);
-
   console.log("URL:", `${API_URL}/Categories`); // DEBUG
-
   if (!response.ok) {
     throw new Error("API error");
   }
-
   return response.json();
 };
-
 // single category by id
 export const getCategoryById = async (id) => {
   const res = await fetch(`${API_URL}/Categories/${id}`);
-
   if (!res.ok) {
     throw new Error("Failed to fetch category");
   }
-
   return res.json();
 };
 
 // list all product
 export const getProduct = async () => {
   const res = await fetch(`${API_URL}/Product`);
-
   if (!res.ok) {
     throw new Error("Failed to fetch product");
   }
-
   return res.json();
 };
 
@@ -44,11 +36,9 @@ export const postOrder = async (orderData) => {
     },
     body: JSON.stringify(orderData),
   });
-
   if (!res.ok) {
     throw new Error("Failed to create order");
   }
-
   return await res.json();
 };
 
@@ -62,12 +52,10 @@ export const generateKHQR = async (paymentData) => {
       },
       body: JSON.stringify(paymentData),
     });
-
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || `Server error: ${res.status}`);
     }
-
     return await res.json();
   } catch (error) {
     console.error("KHQR Generation Error:", error);
@@ -78,11 +66,9 @@ export const generateKHQR = async (paymentData) => {
 // get QR Code image from invoice
 export const getQrCode = async (invoice) => {
   const res = await fetch(`${API_URL}/qr-image/${invoice}`);
-
   if (!res.ok) {
     throw new Error("Failed to fetch QR image");
   }
-
   return await res.blob(); // ✅ FIX HERE
 };
 
@@ -95,14 +81,11 @@ export const checkPaymentStatus = async (invoice) => {
 
 // Search products by name
 export const searchProductsByName = async (name) => {
-  // encodeURIComponent ensures spaces or special characters don't break the URL
   const res = await fetch(
     `${API_URL}/Product?name=${encodeURIComponent(name)}`,
   );
-
   if (!res.ok) {
     throw new Error("Failed to search products");
   }
-
   return res.json();
 };

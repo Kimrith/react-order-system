@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import HeaderOrder from "../../share/headerOrder";
-import ProductOrder from "../../share/productOrder";
-import OrderSummary from "../../share/order_summary";
+import HeaderOrder from "../../common/HeaderOrder";
+import ProductOrder from "../components/ProductOrder";
+import OrderSummary from "../components/OrderSummary";
 import { Link, useNavigate } from "react-router-dom";
-import Bakong from "../../share/bakong";
-import { generateKHQR, getQrCode, postOrder } from "../api/api";
+import Bakong from "../components/BakongPayment";
+import { generateKHQR, getQrCode, postOrder } from "../services/customerApi";
 
 export default function CartOrder() {
   const navigate = useNavigate();

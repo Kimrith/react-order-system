@@ -22,11 +22,11 @@ export default function HeaderOrder({ cartItems = [] }) {
     <div>
       <header className="flex items-center justify-between mb-10 pb-6 border-b border-gray-800">
         <div className="flex items-center gap-4">
-          <button className="bg-[#2D3748] p-3 rounded-full hover:bg-gray-700 transition">
-            <Link to="/">
+          <Link to="/">
+            <button className="bg-[#2D3748] p-3 rounded-full hover:bg-gray-700 transition">
               <ArrowLeft size={20} className="text-gray-300" />
-            </Link>
-          </button>
+            </button>
+          </Link>
 
           <div>
             <h1 className="text-3xl font-extrabold text-white tracking-tight">

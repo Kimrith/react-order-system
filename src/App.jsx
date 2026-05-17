@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import CustomerDashboard from "./customer";
+import CustomerDashboard from "./customer/routes/CustomerRoutes";
 import AdminRoutes from "./admin/routes";
 // import StaffDashboard from "./staff";
 

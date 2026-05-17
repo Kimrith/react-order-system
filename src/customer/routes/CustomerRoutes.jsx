@@ -1,12 +1,12 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "../auth/ProtectedRoute";
+import ProtectedRoute from "../../auth/ProtectedRoute";
 
-import CategoriesId from "./byId/categoriesId";
-import Product from "./components/product";
-import Header from "./components/header";
-import CartOrder from "./components/cartorder";
-import PaymentSuccess from "../share/paymentSuccess";
+import CategoriesId from "../features/pages/CategoryDetailsPage";
+import Product from "../features/pages/ProductsPage";
+import Header from "../common/Header";
+import CartOrder from "../features/pages/CartOrderPage";
+import PaymentSuccess from "../features/pages/PaymentSuccessPage";
 
 export default function Index() {
   return (
