@@ -1,21 +1,23 @@
-import React, { use, useEffect, useState } from "react";
-import { ArrowLeft, Trash2 } from "lucide-react"; // Optional: npm i lucide-react
+import React, { useState } from "react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import Toast from "../features/components/ToastPayment";
 
-// Change the function definition to accept props
-export default function HeaderOrder({ cartItems = [] }) {
+export default function HeaderOrder({ cartItems = [], setCartItems }) {
+  // 1. Setup local state to control the toast visibility
+  const [showToast, setShowToast] = useState(false);
+
   const handleClear = () => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to clear the cart?",
-    );
-
-    if (!isConfirmed) return;
-
+    // Remove data from browser storage
     localStorage.removeItem("my_order");
 
-    alert("Cart cleared!");
+    // Clear React state instantly so items disappear without reloading the browser
+    if (setCartItems) {
+      setCartItems([]);
+    }
 
-    window.location.reload();
+    // 2. Trigger the custom sliding toast notification
+    setShowToast(true);
   };
 
   return (
@@ -34,7 +36,6 @@ export default function HeaderOrder({ cartItems = [] }) {
             </h1>
             <p className="text-gray-400 mt-1">
               Table <span className="text-[#FFBB33] font-bold">A1</span> •{" "}
-              {/* Added a fallback check for safety */}
               {cartItems?.length || 0} items
             </p>
           </div>
@@ -48,6 +49,13 @@ export default function HeaderOrder({ cartItems = [] }) {
           Clear
         </button>
       </header>
+
+      {/* 3. Drop your custom slide animation toast right here */}
+      <Toast
+        message="Cart cleared successfully!"
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

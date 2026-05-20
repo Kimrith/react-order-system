@@ -5,6 +5,7 @@ import OrderSummary from "../components/OrderSummary";
 import { Link, useNavigate } from "react-router-dom";
 import Bakong from "../components/BakongPayment";
 import { generateKHQR, getQrCode, postOrder } from "../services/customerApi";
+import Toast from "../components/ToastPayment"; // Import the Toast component
 
 export default function CartOrder() {
   const navigate = useNavigate();
@@ -13,7 +14,11 @@ export default function CartOrder() {
   const [qrCode, setQrCode] = useState(null);
   const [invoice, setInvoice] = useState(null);
 
-  // ✅ 1. INITIAL LOAD
+  // 🔔 1. State for controlling our Toast notifications
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  // ✅ INITIAL LOAD
   useEffect(() => {
     const savedCart = localStorage.getItem("my_order");
     if (savedCart) {
@@ -25,9 +30,8 @@ export default function CartOrder() {
     }
   }, [navigate]);
 
-  // ✅ 2. REACTIVE STATE AND LOCALSTORAGE REMOVAL
+  // ✅ REACTIVE STATE AND LOCALSTORAGE REMOVAL
   const handleUpdateQty = (id, newQty) => {
-    // Instantly remove item from UI view state array if quantity drops to 0
     const updatedItems =
       newQty === 0
         ? cartItems.filter((item) => item.productId !== id)
@@ -37,7 +41,6 @@ export default function CartOrder() {
 
     setCartItems(updatedItems);
 
-    // Synchronize directly with localStorage
     const savedCart = JSON.parse(localStorage.getItem("my_order") || "{}");
     if (savedCart[id]) {
       if (newQty === 0) {
@@ -49,7 +52,7 @@ export default function CartOrder() {
     }
   };
 
-  // ✅ 3. DISCOUNTS AND FINANCIAL CALCULATIONS
+  // ✅ DISCOUNTS AND FINANCIAL CALCULATIONS
   const subtotal = cartItems.reduce(
     (acc, item) =>
       acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
@@ -64,24 +67,25 @@ export default function CartOrder() {
   }, 0);
 
   const total = subtotal - totalDiscountDeduction;
-
   const overallDiscountPercentage =
     subtotal > 0 ? (totalDiscountDeduction / subtotal) * 100 : 0;
 
-  // ✅ 4. SECURE KHQR GENERATION FLOW
+  // ✅ SECURE KHQR GENERATION FLOW
   const paymentBtn = async () => {
-    // Core Gatekeeper check: Protect system from processing empty calculations
+    // Core Gatekeeper check: Check if cart calculations are empty
     if (!cartItems || cartItems.length === 0 || total <= 0) {
-      alert(
-        "Your cart is empty! Please buy a product before making a payment.",
+      // 🔔 2. Update state strings to display the toast message dynamically
+      setToastMessage(
+        "⚠️ Your cart is empty! Please add a product before paying.",
       );
-      return; // Stop execution immediately
+      setShowToast(true);
+      return;
     }
 
     try {
       const paymentData = {
         orderId: `ORD-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-        amount: Number(total.toFixed(2)), // Clean float constraint
+        amount: Number(total.toFixed(2)),
         currency: "USD",
         expiryDate: new Date(Date.now() + 5 * 60000).toISOString(),
       };
@@ -116,7 +120,6 @@ export default function CartOrder() {
       };
 
       await postOrder(orderPayload);
-
       alert("🎉 Payment Successful! Your order has been placed.");
       navigate("/payment-success");
     } catch (err) {
@@ -186,6 +189,13 @@ export default function CartOrder() {
           onPaymentSuccess={handlePaymentSuccess}
         />
       )}
+
+      {/* --- 🔔 3. RENDER THE TOAST COMPONENT HERE AT THE DOM ROOT --- */}
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }
