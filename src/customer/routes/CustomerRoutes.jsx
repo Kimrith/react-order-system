@@ -7,6 +7,7 @@ import Product from "../features/pages/ProductsPage";
 import Header from "../common/Header";
 import CartOrder from "../features/pages/CartOrderPage";
 import PaymentSuccess from "../features/pages/PaymentSuccessPage";
+import Popup from "../common/Popup";
 
 export default function Index() {
   return (
@@ -24,6 +25,7 @@ export default function Index() {
         }
       />
       <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/popup" element={<Popup />} />
     </Routes>
   );
 }

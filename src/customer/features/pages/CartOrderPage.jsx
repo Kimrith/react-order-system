@@ -13,7 +13,7 @@ export default function CartOrder() {
   const [qrCode, setQrCode] = useState(null);
   const [invoice, setInvoice] = useState(null);
 
-  // ✅ 1. LOAD DATA
+  // ✅ 1. INITIAL LOAD
   useEffect(() => {
     const savedCart = localStorage.getItem("my_order");
     if (savedCart) {
@@ -25,20 +25,23 @@ export default function CartOrder() {
     }
   }, [navigate]);
 
-  // ✅ 2. UPDATE QUANTITY & PERSIST TO LOCALSTORAGE
+  // ✅ 2. REACTIVE STATE AND LOCALSTORAGE REMOVAL
   const handleUpdateQty = (id, newQty) => {
-    // Update local state for UI
-    const updatedItems = cartItems.map((item) =>
-      item.productId === id ? { ...item, quantity: newQty } : item,
-    );
+    // Instantly remove item from UI view state array if quantity drops to 0
+    const updatedItems =
+      newQty === 0
+        ? cartItems.filter((item) => item.productId !== id)
+        : cartItems.map((item) =>
+            item.productId === id ? { ...item, quantity: newQty } : item,
+          );
 
     setCartItems(updatedItems);
 
-    // Sync back to LocalStorage so data isn't lost on refresh
+    // Synchronize directly with localStorage
     const savedCart = JSON.parse(localStorage.getItem("my_order") || "{}");
     if (savedCart[id]) {
       if (newQty === 0) {
-        delete savedCart[id]; // Remove item if qty is 0
+        delete savedCart[id];
       } else {
         savedCart[id].quantity = newQty;
       }
@@ -46,18 +49,39 @@ export default function CartOrder() {
     }
   };
 
-  // ✅ 3. TOTALS
+  // ✅ 3. DISCOUNTS AND FINANCIAL CALCULATIONS
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + (item.price || 0) * (item.quantity || 0),
+    (acc, item) =>
+      acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
     0,
   );
-  const total = subtotal;
 
+  const totalDiscountDeduction = cartItems.reduce((acc, item) => {
+    const price = Number(item.price || 0);
+    const qty = Number(item.quantity || 0);
+    const pct = Number(item.discountPercentage || 0);
+    return acc + price * (pct / 100) * qty;
+  }, 0);
+
+  const total = subtotal - totalDiscountDeduction;
+
+  const overallDiscountPercentage =
+    subtotal > 0 ? (totalDiscountDeduction / subtotal) * 100 : 0;
+
+  // ✅ 4. SECURE KHQR GENERATION FLOW
   const paymentBtn = async () => {
+    // Core Gatekeeper check: Protect system from processing empty calculations
+    if (!cartItems || cartItems.length === 0 || total <= 0) {
+      alert(
+        "Your cart is empty! Please buy a product before making a payment.",
+      );
+      return; // Stop execution immediately
+    }
+
     try {
       const paymentData = {
         orderId: `ORD-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-        amount: total,
+        amount: Number(total.toFixed(2)), // Clean float constraint
         currency: "USD",
         expiryDate: new Date(Date.now() + 5 * 60000).toISOString(),
       };
@@ -73,7 +97,7 @@ export default function CartOrder() {
       const qrBlob = await getQrCode(inv);
       const qrUrl = URL.createObjectURL(qrBlob);
 
-      setInvoice(inv); // ✅ Save invoice ID
+      setInvoice(inv);
       setQrCode(qrUrl);
       setIsOpen(true);
     } catch (err) {
@@ -86,17 +110,15 @@ export default function CartOrder() {
       const orderPayload = {
         invoiceNumber: invoice,
         items: cartItems,
-        totalAmount: total,
+        totalAmount: Number(total.toFixed(2)),
         status: "Paid",
         createdAt: new Date().toISOString(),
       };
 
-      await postOrder(orderPayload); // Send to your database
+      await postOrder(orderPayload);
 
       alert("🎉 Payment Successful! Your order has been placed.");
       navigate("/payment-success");
-      // localStorage.removeItem("my_order");
-      // navigate("/");
     } catch (err) {
       console.error("Database save error:", err);
       alert(
@@ -115,7 +137,6 @@ export default function CartOrder() {
             <h2 className="text-xl font-bold text-gray-300 mb-4">
               Review Items
             </h2>
-            {/* ✅ onUpdateQty is now correctly passed */}
             <ProductOrder items={cartItems} onUpdateQty={handleUpdateQty} />
           </div>
 
@@ -123,6 +144,7 @@ export default function CartOrder() {
             cartItems={cartItems}
             subtotal={subtotal}
             total={total}
+            discountPercentage={overallDiscountPercentage}
           />
         </div>
       </div>
@@ -152,6 +174,7 @@ export default function CartOrder() {
           </div>
         </div>
       </div>
+
       {/* --- BAKONG MODAL --- */}
       {isOpen && (
         <Bakong

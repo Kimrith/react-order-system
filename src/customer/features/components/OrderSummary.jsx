@@ -5,6 +5,7 @@ export default function OrderSummary({
   cartItems = [],
   subtotal = 0,
   total = 0,
+  discountPercentage = 0,
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -47,6 +48,12 @@ export default function OrderSummary({
             </span>
           </div>
 
+          <div className="flex justify-between items-center text-sm md:text-base">
+            <span>DiscountPercentage </span>
+            <span className="text-[#A0AEC0] font-medium italic">
+              {discountPercentage.toFixed(2)}%
+            </span>
+          </div>
           <div className="flex justify-between items-center text-sm md:text-base">
             <span>Estimated Tax </span>
             <span className="text-[#A0AEC0] font-medium italic">Free</span>

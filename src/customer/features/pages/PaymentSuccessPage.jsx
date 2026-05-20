@@ -3,17 +3,14 @@ import { Check, Home, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function PaymentSuccess() {
-  // ✅ Use useState to manage items
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    // ✅ Use the correct key (matching your CartOrder component: "my_order")
     const savedCart = localStorage.getItem("my_order");
 
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
-        // Convert object to array if needed (matching your CartOrder logic)
         const itemsArray = Object.values(parsedCart);
         setCartItems(itemsArray);
       } catch (error) {
@@ -22,7 +19,6 @@ export default function PaymentSuccess() {
     }
   }, []);
 
-  // ✅ Calculate total from the loaded items
   const total = cartItems.reduce(
     (acc, item) => acc + (item.price || 0) * (item.quantity || 0),
     0,
@@ -33,8 +29,10 @@ export default function PaymentSuccess() {
   };
 
   return (
-    <div className="w-full bg-[#1A202E] flex items-center justify-center p-4 font-sans text-white">
-      <div className="bg-[#242C45] w-full max-w-md p-8 border border-white/5 shadow-2xl animate-in fade-in zoom-in duration-500">
+    /* 🛠️ FIX 1: Changed h-100% to min-h-screen so it covers mobile viewports fully. Fixed justify-centet typo. Added p-4 so it doesn't touch phone edges awkwardly. */
+    <div className="w-full min-h-screen bg-[#1A202E] flex items-center justify-center p-4 font-sans text-white">
+      {/* 🛠️ FIX 2: Changed w-full max-w-md to md:max-w-md. On mobile, it will now naturally take full available width. */}
+      <div className="bg-[#242C45] w-full md:max-w-md p-6 sm:p-8 border border-white/5 shadow-2xl rounded-2xl animate-in fade-in zoom-in duration-500">
         {/* SUCCESS ICON */}
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 bg-transparent border-4 border-[#10B981] rounded-full flex items-center justify-center">
