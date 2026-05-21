@@ -1,24 +1,23 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 import Dashboard from '../features/dashboard/Dashboard';
-
-const Products = () => <div className="p-6 text-white text-2xl">Products</div>;
-const Categories = () => <div className="p-6 text-white text-2xl">Category Management</div>;
-const TableManagement = () => <div className="p-6 text-white text-2xl">Table Management</div>;
-const History = () => <div className="p-6 text-white text-2xl">History</div>;
-const AuditLog = () => <div className="p-6 text-white text-2xl">Audit Log</div>;
+import MenuManagement from '../features/products/MenuManagement';
+import TableManagement from '../features/tableManage/TableManage';
+import Category from '../features/categories/category';
+import OrderHistory from '../features/orderHistory/OrderHistory';
+import DiscountManage from '../features/discounts/DiscountManage';
 
 const AdminRoutes = () => {
   return (
     <Routes>
       <Route element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
+        <Route path="" element={<Navigate to="dashboard" />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="products" element={<Products />} />
-        <Route path="categories" element={<Categories />} />
+        <Route path="products" element={<MenuManagement />} />
+        <Route path="categories" element={<Category />} />
         <Route path="tables" element={<TableManagement />} />
-        <Route path="history" element={<History />} />
-        <Route path="audit-log" element={<AuditLog />} />
+        <Route path="history" element={<OrderHistory />} />
+        <Route path="discounts" element={<DiscountManage />} />
       </Route>
     </Routes>
   );
