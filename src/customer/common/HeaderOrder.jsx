@@ -1,22 +1,19 @@
 import React, { useState } from "react";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom"; // Added useParams
 import Toast from "../features/components/ToastPayment";
 
 export default function HeaderOrder({ cartItems = [], setCartItems }) {
-  // 1. Setup local state to control the toast visibility
   const [showToast, setShowToast] = useState(false);
+  const { tableId } = useParams(); // Extract tableId from URL path parameters
 
   const handleClear = () => {
-    // Remove data from browser storage
+    new Audio('/public/sound/remove.mp3').play().catch(() => { });
     localStorage.removeItem("my_order");
 
-    // Clear React state instantly so items disappear without reloading the browser
     if (setCartItems) {
       setCartItems([]);
     }
-
-    // 2. Trigger the custom sliding toast notification
     setShowToast(true);
   };
 
@@ -24,7 +21,8 @@ export default function HeaderOrder({ cartItems = [], setCartItems }) {
     <div>
       <header className="flex items-center justify-between mb-10 pb-6 border-b border-gray-800">
         <div className="flex items-center gap-4">
-          <Link to="/">
+          {/* FIXED: Target the specific menu session of the customer's table */}
+          <Link to={`/TableQr/${tableId}`}>
             <button className="bg-[#2D3748] p-3 rounded-full hover:bg-gray-700 transition">
               <ArrowLeft size={20} className="text-gray-300" />
             </button>
@@ -35,7 +33,8 @@ export default function HeaderOrder({ cartItems = [], setCartItems }) {
               Your Order
             </h1>
             <p className="text-gray-400 mt-1">
-              Table <span className="text-[#FFBB33] font-bold">A1</span> •{" "}
+              {/* FIXED: Output the dynamic table number variable */}
+              Table <span className="text-[#FFBB33] font-bold">{tableId || "Unknown"}</span> •{" "}
               {cartItems?.length || 0} items
             </p>
           </div>
@@ -50,7 +49,6 @@ export default function HeaderOrder({ cartItems = [], setCartItems }) {
         </button>
       </header>
 
-      {/* 3. Drop your custom slide animation toast right here */}
       <Toast
         message="Cart cleared successfully!"
         isVisible={showToast}

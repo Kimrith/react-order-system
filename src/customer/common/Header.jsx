@@ -1,21 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Search from "./Search";
 import Categories from "../features/components/Categories";
-import { Outlet } from "react-router-dom";
+import { Outlet, Link, useParams } from "react-router-dom"; // 1. Added useParams
 import Order from "../features/components/Order";
-import { Link } from "react-router-dom";
-import { useState } from "react";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
 
+  // 2. Extract tableId directly from the URL path parameter
+  const { tableId } = useParams();
+
+  const [tableDisplay, setTableDisplay] = useState("Loading...");
+
+  // 3. Update tableDisplay whenever the URL param changes
+  useEffect(() => {
+    if (tableId) {
+      setTableDisplay(tableId);
+    } else {
+      setTableDisplay("Unknown");
+    }
+  }, [tableId]);
+
   return (
     <div className="bg-[#1A202E] min-h-screen font-sans relative">
-      {" "}
-      {/* Added relative */}
       <div className="max-w-7xl mx-auto p-6 md:p-8 pb-32">
-        {" "}
-        {/* Added bottom padding so content isn't hidden behind the bar */}
+
         {/* 1. Header Section */}
         <header className="flex justify-between items-center mb-6">
           <div>
@@ -26,7 +35,8 @@ export default function Header() {
               </h1>
             </div>
             <p className="text-gray-400 mt-1">
-              Table <span className="text-[#FFBB33] font-bold">A1</span>
+              {/* Displays the dynamic table number */}
+              Table <span className="text-[#FFBB33] font-bold">{tableDisplay}</span>
             </p>
           </div>
 
@@ -36,17 +46,21 @@ export default function Header() {
             </h3>
           </div>
         </header>
+
         {/* 2. Search & Categories */}
         <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         <Categories />
+
         {/* 3. Product List / Nested Routes */}
-        <Outlet context={{ searchQuery }} />
+        {/* Added tableDisplay to context so child components (like checkout) can read the table number */}
+        <Outlet context={{ searchQuery, tableId: tableDisplay }} />
       </div>
-      {/* 4. Order Section (Moved outside the padding container) */}
+
+      {/* 4. Order Section */}
       <div className="justify-center text-center">
-        <Link to="/cart">
-          <Order />
-        </Link>
+        {/* <Link to={`/TableQr/${tableId}/cart`}> */}
+        <Order />
+        {/* </Link> */}
       </div>
     </div>
   );

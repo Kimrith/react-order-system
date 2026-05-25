@@ -1,38 +1,46 @@
 import React, { useEffect, useState } from "react";
 import { Check, Home, ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 
 export default function PaymentSuccess() {
+  const { tableId } = useParams(); // 1. Dynamic path segment lookup
+  const location = useLocation();  // 2. Grabs items passed from the Cart redirect
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
-    const savedCart = localStorage.getItem("my_order");
-
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        const itemsArray = Object.values(parsedCart);
-        setCartItems(itemsArray);
-      } catch (error) {
-        console.error("Failed to parse cart:", error);
+    // Check if items were passed through route state first (Safest method)
+    if (location.state?.items) {
+      setCartItems(location.state.items);
+    } else {
+      // Fallback to local storage if user refreshed the page
+      const savedCart = localStorage.getItem("my_order");
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          setCartItems(Object.values(parsedCart));
+        } catch (error) {
+          console.error("Failed to parse cart:", error);
+        }
       }
     }
-  }, []);
+  }, [location.state]);
 
-  const total = cartItems.reduce(
+  // Calculate totals dynamically based on array elements
+  const total = location.state?.totalAmount || cartItems.reduce(
     (acc, item) => acc + (item.price || 0) * (item.quantity || 0),
-    0,
+    0
   );
 
-  const clearlocalStorage = () => {
+  const clearLocalStorageSession = () => {
+    // Safe sound implementation handler
+    new Audio('/public/sound/remove.mp3').play().catch(() => { });
     localStorage.removeItem("my_order");
   };
 
   return (
-    /* 🛠️ FIX 1: Changed h-100% to min-h-screen so it covers mobile viewports fully. Fixed justify-centet typo. Added p-4 so it doesn't touch phone edges awkwardly. */
     <div className="w-full min-h-screen bg-[#1A202E] flex items-center justify-center p-4 font-sans text-white">
-      {/* 🛠️ FIX 2: Changed w-full max-w-md to md:max-w-md. On mobile, it will now naturally take full available width. */}
       <div className="bg-[#242C45] w-full md:max-w-md p-6 sm:p-8 border border-white/5 shadow-2xl rounded-2xl animate-in fade-in zoom-in duration-500">
+
         {/* SUCCESS ICON */}
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 bg-transparent border-4 border-[#10B981] rounded-full flex items-center justify-center">
@@ -52,7 +60,8 @@ export default function PaymentSuccess() {
         <div className="bg-[#1E253A] rounded-2xl p-5 mb-6 border border-white/5 space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-gray-400 font-medium">Table</span>
-            <span className="text-white font-bold text-xl">A1</span>
+            {/* FIXED: Displays dynamic table id variant instead of hardcoded string */}
+            <span className="text-[#FFBB33] font-black text-xl">{tableId || "Unknown"}</span>
           </div>
           <div className="h-[1px] bg-white/5 w-full" />
           <div className="flex justify-between items-center">
@@ -120,9 +129,10 @@ export default function PaymentSuccess() {
         </div>
 
         {/* BACK BUTTON */}
-        <Link to="/">
+        {/* FIXED: Formatted back destination template string to match structural framework mapping */}
+        <Link to={`/TableQr/${tableId}`}>
           <button
-            onClick={clearlocalStorage}
+            onClick={clearLocalStorageSession}
             className="w-full bg-transparent border border-white/10 hover:bg-white/5 py-4 rounded-2xl flex items-center justify-center gap-2 transition active:scale-95 group"
           >
             <Home size={18} className="text-gray-400 group-hover:text-white" />

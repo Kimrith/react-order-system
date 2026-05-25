@@ -66,6 +66,7 @@ export default function CategoriesId() {
 
   // ✅ MATCHED WITH PRODUCT CARD DESIGN ADD LOGIC
   const handleAdd = (product) => {
+    new Audio('/public/sound/add_to_cart.mp3').play()
     const productId = String(product.id);
 
     setCart((prev) => {
@@ -208,11 +209,10 @@ export default function CategoriesId() {
                   <button
                     onClick={() => handleAdd(p)}
                     disabled={!isAvailable}
-                    className={`w-10 h-10 flex items-center justify-center rounded-xl text-[#1A202E] transition-all duration-200 active:scale-95 ${
-                      isAvailable
+                    className={`w-10 h-10 flex items-center justify-center rounded-xl text-[#1A202E] transition-all duration-200 active:scale-95 ${isAvailable
                         ? "bg-[#FFBB33] hover:bg-[#ffca5c] shadow-md hover:shadow-[#FFBB33]/20"
                         : "bg-[#4A5568] opacity-40 cursor-not-allowed text-gray-400"
-                    }`}
+                      }`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
