@@ -89,3 +89,13 @@ export const searchProductsByName = async (name) => {
   }
   return res.json();
 };
+
+export const getTableByToken = async (token) => {
+  // If your backend has an endpoint that accepts the token directly:
+  const res = await fetch(`${API_URL}/api/TableQr/${encodeURIComponent(token)}`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch table data");
+  }
+  return res.json();
+};

@@ -29,6 +29,7 @@ export default function Product() {
 
   // ADD TO CART
   const handleAdd = (product) => {
+    new Audio('/public/sound/add_to_cart.mp3').play()
     const productId = String(product.id);
     setCart((prev) => {
       const currentQty = prev[productId]?.quantity || 0;
@@ -39,6 +40,7 @@ export default function Product() {
           productName: product.name,
           quantity: currentQty + 1,
           price: product.price,
+          discountPercentage: product.discountPercentage,
           description: product.description,
           image: `${import.meta.env.VITE_IMAGE_URL}${product.productImg}`,
         },
@@ -82,55 +84,98 @@ export default function Product() {
   const ProductCard = ({ product }) => {
     const productId = String(product.id);
     const qty = cart[productId]?.quantity || 0;
-    const { name, description, price, isAvailable, productImg } = product;
+    const {
+      name,
+      description,
+      price,
+      isAvailable,
+      productImg,
+      discountPercentage,
+    } = product;
 
     return (
       <div className="group bg-[#2D3748] rounded-2xl p-4 border border-[#4A5568] flex flex-col transition-all hover:shadow-2xl hover:border-[#FFBB33]/50 hover:-translate-y-1 relative">
+        {/* Image Container */}
         <div className="relative aspect-square mb-4 rounded-xl bg-[#1A202E]/50 overflow-hidden flex items-center justify-center p-4">
           <img
             src={`${import.meta.env.VITE_IMAGE_URL}${productImg}`}
             alt={name}
-            className={`w-full h-full object-contain transition-transform duration-300 ${isAvailable && "group-hover:scale-110"}`}
+            className={`w-full h-full scale-150 object-contain transition-transform duration-300 ${isAvailable && "group-hover:scale-110"}`}
           />
+
+          {/* Discount Badge (Top Left) */}
+          {discountPercentage > 0 && (
+            <div className="absolute top-2 left-2 bg-red-500 text-white font-extrabold text-[12px] tracking-wide uppercase px-2 py-0.5 rounded-md shadow-md z-10 animate-pulse">
+              -{discountPercentage}%
+            </div>
+          )}
+
+          {/* Quantity Badge (Top Right) */}
           {qty > 0 && (
             <div className="absolute top-2 right-2 bg-[#FFBB33] text-[#1A202E] font-bold text-xs px-2 py-1 rounded-lg shadow-md">
               {qty}
             </div>
           )}
+
+          {/* Sold Out Overlay */}
           {!isAvailable && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <span className="text-white font-bold uppercase tracking-widest text-xs bg-red-600 px-3 py-4 rounded-full shadow-lg">
+              <span className="text-white font-bold uppercase tracking-widest text-xs bg-red-600 px-3 py-1.5 rounded-full shadow-lg">
                 Sold Out
               </span>
             </div>
           )}
         </div>
 
+        {/* Content Details */}
         <div className="flex flex-col flex-grow">
-          <div className="flex justify-between items-start gap-1">
-            <h4 className="text-white font-bold text-base">{name}</h4>
-            {/* Added small visual label for ID to assist testing */}
-            <span className="text-gray-500 text-[10px]">#{product.id}</span>
+          <div className="flex justify-between items-start gap-2">
+            <h4 className="text-white font-bold text-base line-clamp-1">
+              {name}
+            </h4>
+            <span className="text-gray-500 text-[10px] shrink-0 mt-1">
+              #{product?.id}
+            </span>
           </div>
-          <p className="text-gray-400 text-xs mt-1.5xl line-clamp-2">
+          <p className="text-gray-400 text-xs mt-2 line-clamp-2">
             {description}
           </p>
         </div>
 
+        {/* Pricing & CTA Action Row */}
         <div className="flex justify-between items-center mt-4 pt-3 border-t border-[#4A5568]/50">
-          <span className="text-[#FFBB33] font-black text-lg">${price}</span>
+          <div className="flex flex-col">
+            {discountPercentage > 0 ? (
+              <>
+                {/* Strike-through original price */}
+                <span className="text-gray-500 line-through text-base font-medium">
+                  ${price.toFixed(2)}
+                </span>
+                {/* New Discounted Price */}
+                <span className="text-[#FFBB33] font-black text-xl">
+                  ${(price * (1 - discountPercentage / 100)).toFixed(2)}
+                </span>
+              </>
+            ) : (
+              /* Regular Price if no discount */
+              <span className="text-[#FFBB33] font-black text-xl">
+                ${price.toFixed(2)}
+              </span>
+            )}
+          </div>
+
+          {/* Add to Cart Button */}
           <button
             onClick={() => handleAdd(product)}
             disabled={!isAvailable}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl text-[#1A202E] transition ${
-              isAvailable
-                ? "bg-[#FFBB33]"
-                : "bg-[#FFBB33] opacity-50 cursor-not-allowed"
-            }`}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl text-[#1A202E] transition-all duration-200 active:scale-95 ${isAvailable
+              ? "bg-[#FFBB33] hover:bg-[#ffca5c] shadow-md hover:shadow-[#FFBB33]/20"
+              : "bg-[#4A5568] opacity-40 cursor-not-allowed text-gray-400"
+              }`}
           >
             <svg
-              xmlns="http://www.w3.org/2000/xl"
-              className="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../../auth/ProtectedRoute";
 
 import CategoriesId from "../features/pages/CategoryDetailsPage";
@@ -11,19 +11,22 @@ import PaymentSuccess from "../features/pages/PaymentSuccessPage";
 export default function Index() {
   return (
     <Routes>
-      <Route element={<Header />}>
-        <Route path="/" element={<Product />} />
-        <Route path="/categories/:id" element={<CategoriesId />} />
+      <Route path="/TableQr/:tableId" element={<Header />}>
+        <Route index element={<Product />} />
+        <Route path="categories/:id" element={<CategoriesId />} />
       </Route>
       <Route
-        path="/cart"
+        path="/TableQr/:tableId/cart"
         element={
           <ProtectedRoute>
             <CartOrder />
           </ProtectedRoute>
         }
       />
-      <Route path="/payment-success" element={<PaymentSuccess />} />
+
+
+      {/* Top-level page completely separate from the menu/table framework */}
+      <Route path="/TableQr/:tableId/payment-success" element={<PaymentSuccess />} />
     </Routes>
   );
 }

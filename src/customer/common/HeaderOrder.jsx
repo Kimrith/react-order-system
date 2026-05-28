@@ -1,28 +1,28 @@
-import React, { use, useEffect, useState } from "react";
-import { ArrowLeft, Trash2 } from "lucide-react"; // Optional: npm i lucide-react
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { Link, useParams } from "react-router-dom"; // Added useParams
+import Toast from "../features/components/ToastPayment";
 
-// Change the function definition to accept props
-export default function HeaderOrder({ cartItems = [] }) {
+export default function HeaderOrder({ cartItems = [], setCartItems }) {
+  const [showToast, setShowToast] = useState(false);
+  const { tableId } = useParams(); // Extract tableId from URL path parameters
+
   const handleClear = () => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to clear the cart?",
-    );
-
-    if (!isConfirmed) return;
-
+    new Audio('/public/sound/remove.mp3').play().catch(() => { });
     localStorage.removeItem("my_order");
 
-    alert("Cart cleared!");
-
-    window.location.reload();
+    if (setCartItems) {
+      setCartItems([]);
+    }
+    setShowToast(true);
   };
 
   return (
     <div>
       <header className="flex items-center justify-between mb-10 pb-6 border-b border-gray-800">
         <div className="flex items-center gap-4">
-          <Link to="/">
+          {/* FIXED: Target the specific menu session of the customer's table */}
+          <Link to={`/TableQr/${tableId}`}>
             <button className="bg-[#2D3748] p-3 rounded-full hover:bg-gray-700 transition">
               <ArrowLeft size={20} className="text-gray-300" />
             </button>
@@ -33,8 +33,8 @@ export default function HeaderOrder({ cartItems = [] }) {
               Your Order
             </h1>
             <p className="text-gray-400 mt-1">
-              Table <span className="text-[#FFBB33] font-bold">A1</span> •{" "}
-              {/* Added a fallback check for safety */}
+              {/* FIXED: Output the dynamic table number variable */}
+              Table <span className="text-[#FFBB33] font-bold">{tableId || "Unknown"}</span> •{" "}
               {cartItems?.length || 0} items
             </p>
           </div>
@@ -48,6 +48,12 @@ export default function HeaderOrder({ cartItems = [] }) {
           Clear
         </button>
       </header>
+
+      <Toast
+        message="Cart cleared successfully!"
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }

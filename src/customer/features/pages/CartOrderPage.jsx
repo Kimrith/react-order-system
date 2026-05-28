@@ -2,43 +2,58 @@ import React, { useEffect, useState } from "react";
 import HeaderOrder from "../../common/HeaderOrder";
 import ProductOrder from "../components/ProductOrder";
 import OrderSummary from "../components/OrderSummary";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom"; // 1. Added useParams
 import Bakong from "../components/BakongPayment";
-import { generateKHQR, getQrCode, postOrder } from "../services/customerApi";
+import PopupBakong from "./PopupBakong";
+import Toast from "../components/ToastPayment";
+
+import {
+  generateKHQR,
+  getQrCode,
+  postOrder,
+} from "../services/customerApi";
 
 export default function CartOrder() {
   const navigate = useNavigate();
+  const { tableId } = useParams(); // 2. Grab tableId from URL path segment
+
   const [cartItems, setCartItems] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [qrCode, setQrCode] = useState(null);
   const [invoice, setInvoice] = useState(null);
 
-  // ✅ 1. LOAD DATA
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  const [showPopup, setShowPopup] = useState(false);
+
+  // Load cart
   useEffect(() => {
     const savedCart = localStorage.getItem("my_order");
     if (savedCart) {
       const parsedCart = JSON.parse(savedCart);
       setCartItems(Object.values(parsedCart));
     } else {
-      alert("No items in cart!");
-      navigate("/");
+      // FIXED: Redirect back to the specific table menu layout if cart is empty
+      navigate(`/TableQr/${tableId}`);
     }
-  }, [navigate]);
+  }, [navigate, tableId]);
 
-  // ✅ 2. UPDATE QUANTITY & PERSIST TO LOCALSTORAGE
+  // Update qty
   const handleUpdateQty = (id, newQty) => {
-    // Update local state for UI
-    const updatedItems = cartItems.map((item) =>
-      item.productId === id ? { ...item, quantity: newQty } : item,
-    );
+    const updatedItems =
+      newQty === 0
+        ? cartItems.filter((item) => item.productId !== id)
+        : cartItems.map((item) =>
+          item.productId === id ? { ...item, quantity: newQty } : item
+        );
 
     setCartItems(updatedItems);
 
-    // Sync back to LocalStorage so data isn't lost on refresh
     const savedCart = JSON.parse(localStorage.getItem("my_order") || "{}");
     if (savedCart[id]) {
       if (newQty === 0) {
-        delete savedCart[id]; // Remove item if qty is 0
+        delete savedCart[id];
       } else {
         savedCart[id].quantity = newQty;
       }
@@ -46,18 +61,36 @@ export default function CartOrder() {
     }
   };
 
-  // ✅ 3. TOTALS
+  // Financial calculations
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + (item.price || 0) * (item.quantity || 0),
-    0,
+    (acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+    0
   );
-  const total = subtotal;
 
+  const totalDiscountDeduction = cartItems.reduce((acc, item) => {
+    const price = Number(item.price) || 0;
+    const qty = Number(item.quantity) || 0;
+    const pct = Number(item.discountPercentage) || 0;
+    return acc + price * (pct / 100) * qty;
+  }, 0);
+
+  const total = subtotal - totalDiscountDeduction;
+
+  const overallDiscountPercentage =
+    subtotal > 0 ? (totalDiscountDeduction / subtotal) * 100 : 0;
+
+  // Generate QR
   const paymentBtn = async () => {
+    if (!cartItems || cartItems.length === 0 || total <= 0) {
+      setToastMessage("⚠️ Your cart is empty! Please add a product before paying.");
+      setShowToast(true);
+      return;
+    }
+
     try {
       const paymentData = {
-        orderId: `ORD-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-        amount: total,
+        orderId: `ORD-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+        amount: Number(total.toFixed(2)),
         currency: "USD",
         expiryDate: new Date(Date.now() + 5 * 60000).toISOString(),
       };
@@ -73,49 +106,53 @@ export default function CartOrder() {
       const qrBlob = await getQrCode(inv);
       const qrUrl = URL.createObjectURL(qrBlob);
 
-      setInvoice(inv); // ✅ Save invoice ID
+      setInvoice(inv);
       setQrCode(qrUrl);
       setIsOpen(true);
     } catch (err) {
+      console.error(err);
       alert("Could not generate QR");
     }
   };
 
+  // Payment success
   const handlePaymentSuccess = async () => {
     try {
       const orderPayload = {
+        tableId: tableId, // FIXED: Sending dynamic table variable to your ASP.NET backend!
         invoiceNumber: invoice,
-        items: cartItems,
-        totalAmount: total,
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        totalAmount: Number(total.toFixed(2)),
         status: "Paid",
         createdAt: new Date().toISOString(),
       };
 
-      await postOrder(orderPayload); // Send to your database
+      await postOrder(orderPayload);
 
-      alert("🎉 Payment Successful! Your order has been placed.");
-      navigate("/payment-success");
-      // localStorage.removeItem("my_order");
-      // navigate("/");
+      setIsOpen(false);
+
+      // Play audio instantly
+      new Audio('/public/sound/thank.mp3').play().catch(() => { });
+      setShowPopup(true);
+
     } catch (err) {
       console.error("Database save error:", err);
-      alert(
-        "Payment was received, but we failed to save the order. Please contact support.",
-      );
+      alert("Payment was received but saving failed.");
     }
   };
 
   return (
-    <div className="bg-[#1A202E] min-h-screen font-sans text-white relative">
+    <div className="bg-[#1A202E] min-h-screen text-white relative">
       <div className="max-w-7xl mx-auto p-6 md:p-8 pb-40">
-        <HeaderOrder cartItems={cartItems} />
+        <HeaderOrder cartItems={cartItems} setCartItems={setCartItems} />
 
         <div className="grid md:grid-cols-3 gap-10">
           <div className="md:col-span-2 space-y-6">
-            <h2 className="text-xl font-bold text-gray-300 mb-4">
-              Review Items
-            </h2>
-            {/* ✅ onUpdateQty is now correctly passed */}
+            <h2 className="text-xl font-bold text-gray-300 mb-4">Review Items</h2>
             <ProductOrder items={cartItems} onUpdateQty={handleUpdateQty} />
           </div>
 
@@ -123,39 +160,35 @@ export default function CartOrder() {
             cartItems={cartItems}
             subtotal={subtotal}
             total={total}
+            discountPercentage={overallDiscountPercentage}
           />
         </div>
       </div>
 
-      {/* --- FIXED BOTTOM BAR --- */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-[#1A202E] border-t border-gray-800 z-50 shadow-[0_-10px_25px_rgba(0,0,0,0.3)]">
-        <div className="max-w-md mx-auto space-y-6">
-          <div className="space-y-3">
-            <h3 className="text-gray-500 text-xs font-bold uppercase tracking-widest">
-              Payment Method
-            </h3>
-          </div>
-
+      {/* Bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-[#1A202E] border-t border-gray-800 z-50">
+        <div className="max-w-md mx-auto">
           <div className="flex gap-4">
-            <Link to="/" className="flex-1">
-              <button className="w-full bg-[#2D3748] py-4 rounded-2xl text-gray-300 font-bold hover:bg-gray-700 transition">
+            {/* FIXED: Target the dynamic menu path structure */}
+            <Link to={`/TableQr/${tableId}`} className="flex-1">
+              <button className="w-full bg-[#2D3748] py-4 rounded-2xl text-gray-300">
                 Add More
               </button>
             </Link>
 
             <button
               onClick={paymentBtn}
-              className="flex-[2.5] bg-[#FFBB33] hover:bg-[#FFCC66] flex items-center justify-center gap-2 py-4 rounded-2xl shadow-[0_8px_25px_rgba(255,187,51,0.2)] transition text-[#1A202E] font-extrabold text-lg"
+              className="flex-[2.5] bg-[#FFBB33] py-4 rounded-2xl text-[#1A202E] font-bold"
             >
               Pay with KHQR · ${total.toFixed(2)}
             </button>
           </div>
         </div>
       </div>
-      {/* --- BAKONG MODAL --- */}
+
+      {/* QR Modal */}
       {isOpen && (
         <Bakong
-          cartItems={cartItems}
           total={total}
           qrCode={qrCode}
           invoice={invoice}
@@ -163,6 +196,25 @@ export default function CartOrder() {
           onPaymentSuccess={handlePaymentSuccess}
         />
       )}
+
+      {/* Success popup */}
+      {showPopup && (
+        <PopupBakong
+          onClose={() => {
+            setShowPopup(false);
+            navigate(`/TableQr/${tableId}/payment-success`, {
+              state: { items: cartItems, totalAmount: total }
+            });
+          }}
+        />
+      )}
+
+      {/* Toast */}
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 }
