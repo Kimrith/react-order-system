@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ShoppingCart, ChevronRight } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom"; // Added useParams
 
 export default function Order() {
   const [totalCountProduct, setTotalCountProduct] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const navigate = useNavigate();
+  const { tableId } = useParams(); // Extract tableId from active URL segment
 
   const calculateCart = () => {
     const savedCart = localStorage.getItem("my_order");
@@ -14,29 +17,43 @@ export default function Order() {
       return;
     }
 
-    const cartObj = JSON.parse(savedCart);
-    const items = Object.values(cartObj);
+    try {
+      const cartObj = JSON.parse(savedCart);
+      const items = Object.values(cartObj);
 
-    setTotalCountProduct(items.reduce((t, i) => t + (i.quantity || 0), 0));
+      const count = items.reduce((t, i) => t + (i.quantity || 0), 0);
+      const price = items.reduce(
+        (t, i) => t + (i.price || 0) * (i.quantity || 0),
+        0,
+      );
 
-    setTotalPrice(
-      items.reduce((t, i) => t + (i.price || 0) * (i.quantity || 0), 0),
-    );
+      setTotalCountProduct(count);
+      setTotalPrice(price);
+    } catch (error) {
+      console.error("Error parsing cart:", error);
+      setTotalCountProduct(0);
+    }
   };
 
   useEffect(() => {
-    calculateCart(); // initial load
-
+    calculateCart();
     window.addEventListener("cartUpdated", calculateCart);
-
     return () => {
       window.removeEventListener("cartUpdated", calculateCart);
     };
   }, []);
 
+  if (totalCountProduct <= 0) {
+    return null;
+  }
+
   return (
-    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 pointer-events-none">
-      <button className="w-64 pointer-events-auto bg-gradient-to-r from-[#FFBB33] to-[#FF8C33] flex items-center justify-between py-4 px-8 rounded-full shadow-[0_10px_25px_rgba(255,187,51,0.4)]">
+    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
+      <button
+        // FIXED: Dynamically navigate to the structural route endpoint
+        onClick={() => navigate(`/TableQr/${tableId}/cart`)}
+        className="w-64 bg-gradient-to-r from-[#FFBB33] to-[#FF8C33] flex items-center justify-between py-4 px-8 rounded-full shadow-[0_10px_25px_rgba(255,187,51,0.4)] hover:scale-105 transition-transform active:scale-95"
+      >
         <div className="flex items-center gap-3">
           <div className="bg-[#1A202E]/20 p-2 rounded-lg">
             <ShoppingCart size={20} className="text-[#1A202E]" />
