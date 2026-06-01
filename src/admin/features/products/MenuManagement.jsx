@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchProducts, createProduct, updateProduct, setProductAvailability, deleteProduct, getProduct } from '../api/productApi';
+import { fetchCategories } from '../api/categoryApi';
 import {
     Search,
     Plus,
@@ -11,198 +13,70 @@ import {
 } from 'lucide-react';
 
 // Seed products to reach 13 items as specified in the mock-up's subtitle
-const SEED_PRODUCTS = [
-    {
-        id: 1,
-        name: 'Coca-Cola',
-        description: 'Classic refreshing cola, served chilled',
-        category: 'Drinks',
-        price: 1.50,
-        available: true,
-        icon: '🥤',
-        iconBg: 'bg-pink-500/10 text-pink-400'
-    },
-    {
-        id: 2,
-        name: 'Fresh Orange Juice',
-        description: 'Freshly squeezed, no preservatives',
-        category: 'Drinks',
-        price: 3.00,
-        available: true,
-        icon: '🍊',
-        iconBg: 'bg-amber-500/10 text-amber-400'
-    },
-    {
-        id: 3,
-        name: 'Iced Coffee',
-        description: 'Strong cold brew with milk',
-        category: 'Drinks',
-        price: 2.50,
-        available: true,
-        icon: '☕',
-        iconBg: 'bg-amber-900/20 text-amber-600'
-    },
-    {
-        id: 4,
-        name: 'Thai Milk Tea',
-        description: 'Creamy sweet tea with condensed milk',
-        category: 'Drinks',
-        price: 2.75,
-        available: true,
-        icon: '🧋',
-        iconBg: 'bg-orange-500/10 text-orange-400'
-    },
-    {
-        id: 5,
-        name: 'Sparkling Water',
-        description: 'Chilled sparkling mineral water',
-        category: 'Drinks',
-        price: 1.00,
-        available: false,
-        icon: '💧',
-        iconBg: 'bg-blue-500/10 text-blue-400'
-    },
-    {
-        id: 6,
-        name: 'Beef Burger',
-        description: 'Angus beef patty with lettuce & cheese',
-        category: 'Food',
-        price: 6.50,
-        available: true,
-        icon: '🍔',
-        iconBg: 'bg-yellow-600/10 text-yellow-500'
-    },
-    {
-        id: 7,
-        name: 'Chicken Fried Rice',
-        description: 'Wok-fried rice with egg & vegetables',
-        category: 'Food',
-        price: 4.50,
-        available: true,
-        icon: '🍚',
-        iconBg: 'bg-red-500/10 text-red-400'
-    },
-    {
-        id: 8,
-        name: 'Grilled Salmon',
-        description: 'Fresh salmon fillet with steamed vegs',
-        category: 'Food',
-        price: 9.00,
-        available: true,
-        icon: '🐟',
-        iconBg: 'bg-cyan-500/10 text-cyan-400'
-    },
-    {
-        id: 9,
-        name: 'Pad Thai Noodles',
-        description: 'Stir-fried rice noodles, shrimp & pean...',
-        category: 'Food',
-        price: 5.00,
-        available: true,
-        icon: '🍜',
-        iconBg: 'bg-red-500/10 text-red-400'
-    },
-    {
-        id: 10,
-        name: 'Chocolate Lava Cake',
-        description: 'Rich chocolate cake with a molten warm center',
-        category: 'Desserts',
-        price: 4.50,
-        available: true,
-        icon: '🍰',
-        iconBg: 'bg-pink-500/10 text-pink-400'
-    },
-    {
-        id: 11,
-        name: 'Strawberry Cheesecake',
-        description: 'Creamy NY cheesecake with fresh strawberries',
-        category: 'Desserts',
-        price: 5.00,
-        available: true,
-        icon: '🍰',
-        iconBg: 'bg-rose-500/10 text-rose-400'
-    },
-    {
-        id: 12,
-        name: 'French Fries',
-        description: 'Golden crispy potato fries, lightly salted',
-        category: 'Snacks',
-        price: 3.00,
-        available: true,
-        icon: '🍟',
-        iconBg: 'bg-yellow-500/10 text-yellow-400'
-    },
-    {
-        id: 13,
-        name: 'Crispy Onion Rings',
-        description: 'Deep-fried battered sweet onion rings',
-        category: 'Snacks',
-        price: 3.50,
-        available: true,
-        icon: '🧅',
-        iconBg: 'bg-amber-600/10 text-amber-500'
-    }
-];
+const API_BASE_URL = "https://localhost:7293"; // TODO: set your API base URL
 
-
-
-const EMOJI_OPTIONS = [
-    { char: '🥤', bg: 'bg-pink-500/10 text-pink-400' },
-    { char: '🍊', bg: 'bg-amber-500/10 text-amber-400' },
-    { char: '☕', bg: 'bg-amber-900/20 text-amber-600' },
-    { char: '🧋', bg: 'bg-orange-500/10 text-orange-400' },
-    { char: '💧', bg: 'bg-blue-500/10 text-blue-400' },
-    { char: '🍔', bg: 'bg-yellow-600/10 text-yellow-500' },
-    { char: '🍚', bg: 'bg-red-500/10 text-red-400' },
-    { char: '🐟', bg: 'bg-cyan-500/10 text-cyan-400' },
-    { char: '🍜', bg: 'bg-red-500/10 text-red-400' },
-    { char: '🍰', bg: 'bg-rose-500/10 text-rose-400' },
-    { char: '🍟', bg: 'bg-yellow-500/10 text-yellow-400' },
-    { char: '🧅', bg: 'bg-amber-600/10 text-amber-500' },
-    { char: '🍕', bg: 'bg-red-500/10 text-red-400' },
-    { char: '🥪', bg: 'bg-yellow-700/10 text-yellow-600' },
-    { char: '🍩', bg: 'bg-purple-500/10 text-purple-400' },
-    { char: '🍦', bg: 'bg-cyan-500/10 text-cyan-400' }
-];
 
 export default function MenuManagement() {
-    const [categories, setCategories] = useState(() => {
-        const saved = localStorage.getItem('coffee_categories');
-        return saved ? JSON.parse(saved) : [
-            { id: 'All', name: 'All', icon: '🍽️', isSystem: true, code: 'cat-1', iconBg: 'bg-slate-500/10 text-slate-400' },
-            { id: 'Drinks', name: 'Drinks', icon: '🥤', code: 'cat-2', iconBg: 'bg-pink-500/10 text-pink-400' },
-            { id: 'Food', name: 'Food', icon: '🍔', code: 'cat-3', iconBg: 'bg-yellow-600/10 text-yellow-500' },
-            { id: 'Desserts', name: 'Desserts', icon: '🍰', code: 'cat-4', iconBg: 'bg-rose-500/10 text-rose-400' },
-            { id: 'Snacks', name: 'Snacks', icon: '🍟', code: 'cat-5', iconBg: 'bg-yellow-500/10 text-yellow-400' }
-        ];
-    });
+    const [categories, setCategories] = useState([
+        { id: 'All', name: 'All', icon: '🍽️', isSystem: true, code: 'cat-1', iconBg: 'bg-slate-500/10 text-slate-400' }
+    ]);
 
-    const [products, setProducts] = useState(() => {
-        const saved = localStorage.getItem('coffee_products');
-        return saved ? JSON.parse(saved) : SEED_PRODUCTS;
-    });
+    const [products, setProducts] = useState([]);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
 
-    useEffect(() => {
-        localStorage.setItem('coffee_products', JSON.stringify(products));
-    }, [products]);
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     useEffect(() => {
-        localStorage.setItem('coffee_categories', JSON.stringify(categories));
-    }, [categories]);
+        const handler = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
 
-    // Sync data across tabs/pages
+    // Load categories once
     useEffect(() => {
-        const handleStorageChange = () => {
-            const savedProds = localStorage.getItem('coffee_products');
-            if (savedProds) setProducts(JSON.parse(savedProds));
-            const savedCats = localStorage.getItem('coffee_categories');
-            if (savedCats) setCategories(JSON.parse(savedCats));
+        const loadCategories = async () => {
+            try {
+                const cats = await fetchCategories();
+                const mappedCats = cats.map(c => ({
+                    ...c,
+                    name: c.categoryName,
+                    icon: '🍽️',
+                    iconBg: 'bg-slate-500/10 text-slate-400'
+                }));
+                const allCat = { id: 'All', name: 'All', icon: '🍽️', isSystem: true, code: 'cat-1', iconBg: 'bg-slate-500/10 text-slate-400' };
+                setCategories([allCat, ...mappedCats]);
+            } catch (err) {
+                console.error(err);
+                showToast('Error loading categories');
+            }
         };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
+        loadCategories();
+    }, []);
+
+    // Load products whenever search or category changes
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                const cat = categories.find(c => c.name === selectedCategory);
+                const catId = cat && selectedCategory !== 'All' ? cat.id : null;
+                const prods = await fetchProducts(catId, debouncedSearch);
+                setProducts(prods);
+            } catch (err) {
+                console.error(err);
+                showToast('Error loading products');
+            }
+        };
+        if (categories.length > 0) {
+            loadProducts();
+        }
+    }, [debouncedSearch, selectedCategory, categories]);
+
+    // Removed local storage sync for categories/products since using API
+    useEffect(() => {
+        // Keeping this if other parts depend on it, but generally not needed with API
     }, []);
 
     // Modals state
@@ -218,6 +92,7 @@ export default function MenuManagement() {
     const [formPrice, setFormPrice] = useState('');
     const [formAvailable, setFormAvailable] = useState(true);
     const [formEmoji, setFormEmoji] = useState('🥤');
+    const [formFile, setFormFile] = useState(null);
 
     // Custom Toast notification state
     const [toastMessage, setToastMessage] = useState(null);
@@ -229,20 +104,8 @@ export default function MenuManagement() {
         }, 3000);
     };
 
-    // Filtered and Searched Products
-    const filteredProducts = useMemo(() => {
-        return products.filter((product) => {
-            const matchesSearch =
-                product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                product.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-            const matchesCategory =
-                selectedCategory === 'All' ||
-                product.category.toLowerCase() === selectedCategory.toLowerCase();
-
-            return matchesSearch && matchesCategory;
-        });
-    }, [products, searchQuery, selectedCategory]);
+    // Products are now filtered by the backend
+    const filteredProducts = products;
 
     // Open modal for Adding a new Item
     const handleAddNewClick = () => {
@@ -257,15 +120,21 @@ export default function MenuManagement() {
     };
 
     // Open modal for Editing an Item
-    const handleEditClick = (product) => {
-        setEditingProduct(product);
-        setFormName(product.name);
-        setFormDescription(product.description);
-        setFormCategory(product.category);
-        setFormPrice(product.price.toString());
-        setFormAvailable(product.available);
-        setFormEmoji(product.icon);
-        setIsFormModalOpen(true);
+    const handleEditClick = async (product) => {
+        try {
+            const freshProduct = await getProduct(product.id);
+            setEditingProduct(freshProduct);
+            setFormName(freshProduct.name);
+            setFormDescription(freshProduct.description || '');
+            setFormCategory(freshProduct.categoryName || product.categoryName || 'Drinks');
+            setFormPrice(freshProduct.price.toString());
+            setFormAvailable(freshProduct.isAvailable);
+            setFormEmoji(product.icon || '🥤');
+            setIsFormModalOpen(true);
+        } catch (err) {
+            console.error(err);
+            showToast('Error loading product details');
+        }
     };
 
     // Open modal for Deleting an Item
@@ -275,69 +144,77 @@ export default function MenuManagement() {
     };
 
     // Toggle Availability state
-    const handleToggleAvailability = (id) => {
-        setProducts(prevProducts =>
-            prevProducts.map(p =>
-                p.id === id ? { ...p, available: !p.available } : p
-            )
-        );
-        const updatedProd = products.find(p => p.id === id);
-        if (updatedProd) {
-            showToast(`"${updatedProd.name}" availability updated successfully!`);
+    const handleToggleAvailability = async (id) => {
+        try {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            const newAvailability = !product.isAvailable;
+            await setProductAvailability(id, newAvailability);
+            setProducts(prev => prev.map(p => (p.id === id ? { ...p, isAvailable: newAvailability } : p)));
+            showToast(`"${product.name}" availability updated successfully!`);
+        } catch (err) {
+            console.error(err);
+            showToast('Error updating availability');
         }
     };
 
     // Save product (Add or Update)
-    const handleSaveProduct = (e) => {
+    const handleSaveProduct = async (e) => {
         e.preventDefault();
         if (!formName || !formPrice) return;
+        try {
+            const formData = new FormData();
+            if (formFile) formData.append('productImg', formFile);
+            formData.append('name', formName);
+            formData.append('description', formDescription);
+            formData.append('price', formPrice);
+            formData.append('isAvailable', formAvailable);
 
-        const matchedEmoji = EMOJI_OPTIONS.find(e => e.char === formEmoji) || EMOJI_OPTIONS[0];
+            // Find the category by name since the form uses name
+            const selectedCat = categories.find(c => c.name === formCategory);
+            formData.append('categoryId', selectedCat ? selectedCat.id : 1);
+            // optional fields can be added here as needed
 
-        if (editingProduct) {
-            // Update existing product
-            setProducts(prevProducts =>
-                prevProducts.map(p =>
-                    p.id === editingProduct.id
-                        ? {
-                            ...p,
-                            name: formName,
-                            description: formDescription,
-                            category: formCategory,
-                            price: parseFloat(formPrice),
-                            available: formAvailable,
-                            icon: formEmoji,
-                            iconBg: matchedEmoji.bg
-                        }
-                        : p
-                )
-            );
-            showToast(`"${formName}" updated successfully!`);
-        } else {
-            // Add new product
-            const newProduct = {
-                id: Date.now(),
-                name: formName,
-                description: formDescription,
-                category: formCategory,
-                price: parseFloat(formPrice),
-                available: formAvailable,
-                icon: formEmoji,
-                iconBg: matchedEmoji.bg
-            };
-            setProducts(prevProducts => [newProduct, ...prevProducts]);
-            showToast(`"${formName}" added successfully!`);
+            if (editingProduct) {
+                formData.append('id', editingProduct.id);
+                if (editingProduct.displayValue != null) formData.append('displayValue', editingProduct.displayValue);
+                if (editingProduct.discountPercentage != null) formData.append('discountPercentage', editingProduct.discountPercentage);
+                if (editingProduct.discountStartDate) formData.append('discountStartDate', editingProduct.discountStartDate);
+                if (editingProduct.discountEndDate) formData.append('discountEndDate', editingProduct.discountEndDate);
+
+                await updateProduct(editingProduct.id, formData);
+                showToast(`"${formName}" updated successfully!`);
+            } else {
+                await createProduct(formData);
+                showToast(`"${formName}" added successfully!`);
+            }
+
+            // Re-fetch products from the server to ensure we have the fully populated data
+            // (e.g., generated image URLs, default fields, category relations)
+            const cat = categories.find(c => c.name === selectedCategory);
+            const catId = cat && selectedCategory !== 'All' ? cat.id : null;
+            const updatedProducts = await fetchProducts(catId, debouncedSearch);
+            setProducts(updatedProducts);
+
+        } catch (err) {
+            console.error(err);
+            showToast('Error saving product');
         }
-
         setIsFormModalOpen(false);
     };
 
     // Confirm delete product
-    const handleConfirmDelete = () => {
-        const deletedProduct = products.find(p => p.id === deletingProductId);
-        setProducts(prevProducts => prevProducts.filter(p => p.id !== deletingProductId));
-        if (deletedProduct) {
-            showToast(`"${deletedProduct.name}" removed from menu.`);
+    const handleConfirmDelete = async () => {
+        try {
+            await deleteProduct(deletingProductId);
+            const deletedProduct = products.find(p => p.id === deletingProductId);
+            setProducts(prevProducts => prevProducts.filter(p => p.id !== deletingProductId));
+            if (deletedProduct) {
+                showToast(`"${deletedProduct.name}" removed from menu.`);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Error deleting product');
         }
         setIsDeleteModalOpen(false);
     };
@@ -442,9 +319,13 @@ export default function MenuManagement() {
                                             {/* Name & Details Column */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-11 h-11 rounded-xl ${product.iconBg} flex items-center justify-center text-2xl shadow-inner`}>
-                                                        {product.icon}
-                                                    </div>
+                                                    {product.productImg ? (
+                                                        <img src={`${API_BASE_URL + product.productImg}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover" />
+                                                    ) : (
+                                                        <div className={`w-11 h-11 rounded-xl ${product.iconBg} flex items-center justify-center text-2xl shadow-inner`}>
+                                                            {product.icon}
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <div className="font-bold text-white text-[15px] group-hover:text-blue-400 transition-colors">
                                                             {product.name}
@@ -459,7 +340,7 @@ export default function MenuManagement() {
                                             {/* Category Badge Column */}
                                             <td className="px-6 py-4">
                                                 <span className="inline-flex items-center px-3 py-1 bg-[#1E2533] border border-gray-800/80 rounded-md text-[10px] font-bold text-gray-300 tracking-widest uppercase">
-                                                    {product.category}
+                                                    {product.categoryName || 'N/A'}
                                                 </span>
                                             </td>
 
@@ -474,11 +355,11 @@ export default function MenuManagement() {
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => handleToggleAvailability(product.id)}
-                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${product.available ? 'bg-[#10B981]' : 'bg-gray-700/60'
+                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${product.isAvailable ? 'bg-[#10B981]' : 'bg-gray-700/60'
                                                         }`}
                                                 >
                                                     <span
-                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${product.available ? 'translate-x-5' : 'translate-x-0'
+                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${product.isAvailable ? 'translate-x-5' : 'translate-x-0'
                                                             }`}
                                                     />
                                                 </button>
@@ -612,25 +493,34 @@ export default function MenuManagement() {
                                     </div>
                                 </div>
 
-                                {/* Emoji Selector */}
+                                {/* Image Upload */}
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 block">
-                                        Choose Icon/Emoji
-                                    </label>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400" htmlFor="productImg">Product Image *</label>
+                                    <input
+                                        id="productImg"
+                                        type="file"
+                                        accept="image/*"
+                                        required={!editingProduct}
+                                        onChange={(e) => setFormFile(e.target.files[0])}
+                                        className="w-full text-white bg-[#131924] border border-gray-850 rounded-xl p-2"
+                                    />
+                                </div>
+                                {/* Emoji Selector (fallback) */}
+                                {/* <div className="space-y-2 mt-4">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 block">Choose Icon/Emoji</label>
                                     <div className="grid grid-cols-8 gap-2 p-3 bg-[#131924] rounded-xl border border-gray-850 max-h-[120px] overflow-y-auto">
                                         {EMOJI_OPTIONS.map((emoji) => (
                                             <button
                                                 key={emoji.char}
                                                 type="button"
                                                 onClick={() => setFormEmoji(emoji.char)}
-                                                className={`text-2xl p-1.5 rounded-lg hover:bg-gray-800 transition-colors ${formEmoji === emoji.char ? 'bg-[#1E65FF]/20 border border-[#1E65FF]' : 'border border-transparent'
-                                                    }`}
+                                                className={`text-2xl p-1.5 rounded-lg hover:bg-gray-800 transition-colors ${formEmoji === emoji.char ? 'bg-[#1E65FF]/20 border border-[#1E65FF]' : 'border border-transparent'}`}
                                             >
                                                 {emoji.char}
                                             </button>
                                         ))}
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {/* Description */}
                                 <div className="space-y-2">

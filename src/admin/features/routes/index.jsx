@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
-import Dashboard from '../features/dashboard/Dashboard';
-import MenuManagement from '../features/products/MenuManagement';
-import TableManagement from '../features/tableManage/TableManage';
-import Category from '../features/categories/category';
-import OrderHistory from '../features/orderHistory/OrderHistory';
-import DiscountManage from '../features/discounts/DiscountManage';
+import Dashboard from '../dashboard/Dashboard';
+import MenuManagement from '../products/MenuManagement';
+import TableManagement from '../tableManage/TableManage';
+import Category from '../categories/category';
+import OrderHistory from '../orderHistory/OrderHistory';
+import DiscountManage from '../discounts/DiscountManage';
 
 const AdminRoutes = () => {
   return (
