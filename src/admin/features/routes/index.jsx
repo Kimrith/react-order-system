@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
-import Dashboard from '../features/dashboard/Dashboard';
+import Dashboard from '../dashboard/Dashboard';
 
 const Products = () => <div className="p-6 text-white text-2xl">Products</div>;
 const Categories = () => <div className="p-6 text-white text-2xl">Category Management</div>;
