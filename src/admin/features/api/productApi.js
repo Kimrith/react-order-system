@@ -1,4 +1,4 @@
-// src/admin/features/api/productApi.js
+// src/admin/features/productApi.js
 // Centralized API helper for product management.
 // Uses Vite's environment variable for base URL (VITE_API_BASE_URL).
 
@@ -10,8 +10,8 @@ export const fetchProducts = async (categoryId = null, searchTerm = '') => {
     if (categoryId) params.append('CategoryId', categoryId);
     if (searchTerm) params.append('SearchTerm', searchTerm);
     const queryString = params.toString();
-    const url = `${BASE_URL}/api/product${queryString ? `?${queryString}` : ''}`;
-    
+    const url = `${BASE_URL}/product${queryString ? `?${queryString}` : ''}`;
+
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch products');
     return await res.json();
@@ -19,14 +19,14 @@ export const fetchProducts = async (categoryId = null, searchTerm = '') => {
 
 /** Get a single product by ID */
 export const getProduct = async (id) => {
-    const res = await fetch(`${BASE_URL}/api/product/${id}`);
+    const res = await fetch(`${BASE_URL}/product/${id}`);
     if (!res.ok) throw new Error('Failed to fetch product');
     return await res.json();
 };
 
 /** Create a new product */
 export const createProduct = async (formData) => {
-    const res = await fetch(`${BASE_URL}/api/product`, {
+    const res = await fetch(`${BASE_URL}/product`, {
         method: 'POST',
         body: formData,
     });
@@ -36,7 +36,7 @@ export const createProduct = async (formData) => {
 
 /** Update an existing product (PUT) */
 export const updateProduct = async (id, formData) => {
-    const res = await fetch(`${BASE_URL}/api/product/${id}`, {
+    const res = await fetch(`${BASE_URL}/product/${id}`, {
         method: 'PUT',
         body: formData,
     });
@@ -46,7 +46,7 @@ export const updateProduct = async (id, formData) => {
 
 /** Toggle product availability (PATCH) */
 export const setProductAvailability = async (id, isAvailable) => {
-    const res = await fetch(`${BASE_URL}/api/product/${id}/availability`, {
+    const res = await fetch(`${BASE_URL}/product/${id}/availability`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isAvailable }),
@@ -58,7 +58,7 @@ export const setProductAvailability = async (id, isAvailable) => {
 
 /** Delete a product */
 export const deleteProduct = async (id) => {
-    const res = await fetch(`${BASE_URL}/api/product/${id}`, {
+    const res = await fetch(`${BASE_URL}/product/${id}`, {
         method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete product');

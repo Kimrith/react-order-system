@@ -13,7 +13,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<CustomerDashboard />} />
+        <Route path="/*" element={<CustomerDashboard />} />
         <Route path="/customer/*" element={<CustomerDashboard />} />
         {/* <Route path="/staff/*" element={<StaffDashboard />} /> */}
         <Route path="/admin/*" element={<AdminRoutes />} />

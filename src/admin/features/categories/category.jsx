@@ -11,8 +11,6 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-const API_BASE_URL = "https://localhost:7293";
-
 
 export default function Category() {
   const [categories, setCategories] = useState([]);
