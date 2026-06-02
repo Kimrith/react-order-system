@@ -1,8 +1,13 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import CustomerDashboard from "./customer";
-import StaffDashboard from "./staff";
-import AdminDashboard from "./admin";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import CustomerDashboard from "./customer/routes/CustomerRoutes";
+import AdminRoutes from "./admin/routes";
+// import StaffDashboard from "./staff";
 
 export default function App() {
   return (
@@ -10,8 +15,8 @@ export default function App() {
       <Routes>
         <Route path="/*" element={<CustomerDashboard />} />
         <Route path="/customer/*" element={<Navigate to="/" replace />} />
-        <Route path="/staff/*" element={<StaffDashboard />} />
-        <Route path="/admin/*" element={<AdminDashboard />} />
+        {/* <Route path="/staff/*" element={<StaffDashboard />} /> */}
+        <Route path="/admin/*" element={<AdminRoutes />} />
       </Routes>
     </Router>
   );
