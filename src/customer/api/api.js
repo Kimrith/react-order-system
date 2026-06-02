@@ -85,3 +85,4 @@ export const getQrCode = async (invoice) => {
 
   return await res.blob(); // ✅ FIX HERE
 };
+

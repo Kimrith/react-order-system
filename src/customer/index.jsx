@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
 import CategoriesId from "./byId/categoriesId";
@@ -9,8 +9,7 @@ import CartOrder from "./components/cartorder";
 
 export default function Index() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <Routes>
         <Route element={<Header />}>
           <Route path="/" element={<Product />} />
           <Route path="/categories/:id" element={<CategoriesId />} />
@@ -23,7 +22,6 @@ export default function Index() {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </BrowserRouter>
+    </Routes>
   );
 }
