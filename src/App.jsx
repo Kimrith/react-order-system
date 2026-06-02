@@ -6,7 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import CustomerDashboard from "./customer/routes/CustomerRoutes";
-import AdminRoutes from "./admin/routes";
+import AdminRoutes from "./admin/features/routes";
 // import StaffDashboard from "./staff";
 
 export default function App() {
@@ -14,7 +14,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/*" element={<CustomerDashboard />} />
-        <Route path="/customer/*" element={<Navigate to="/" replace />} />
+        <Route path="/customer/*" element={<CustomerDashboard />} />
         {/* <Route path="/staff/*" element={<StaffDashboard />} /> */}
         <Route path="/admin/*" element={<AdminRoutes />} />
       </Routes>
