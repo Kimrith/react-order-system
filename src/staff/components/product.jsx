@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, Coffee, Wine, Pizza, IceCream, Cookie, X } from 'lucide-react';
-import { getCategories } from '../../customer/api/api';
+import { getCategories } from '../../customer/features/services/customerApi';
 import { getProducts, updateProductAvailability, deleteProduct, createProduct } from '../api/product';
 
 export default function Products() {

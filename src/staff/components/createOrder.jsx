@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Minus, ShoppingCart, Coffee, Wine, Pizza, IceCream, Cookie, ArrowLeft, Trash2, Wallet, QrCode } from 'lucide-react';
-import { getProduct, postOrder, getCategories } from '../../customer/api/api';
+import { getProduct, postOrder, getCategories } from '../../customer/features/services/customerApi';
 
 
 
