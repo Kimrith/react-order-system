@@ -310,8 +310,8 @@ export default function TableManage() {
                         </h3>
                       </div>
                       <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${isOccupied
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         }`}>
                         {isOccupied ? 'Occupied' : 'Available'}
                       </span>
