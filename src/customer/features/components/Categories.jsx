@@ -6,12 +6,16 @@ export default function Categories() {
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const { id: routeId } = useParams();
+
+  // Cleaned up here: Destructure both parameters smoothly in one single line
+  const { tableId, id: routeId } = useParams();
 
   // Safely extract active target category parameter across raw structural paths
   let activeId = "all";
-  if (location.pathname !== "/") {
+  if (location.pathname.includes("/categories/")) {
     activeId = routeId || location.pathname.split("/").pop();
+  } else {
+    activeId = "all";
   }
 
   useEffect(() => {
@@ -42,9 +46,9 @@ export default function Categories() {
     if (!hasProducts) return;
 
     if (id === "all") {
-      navigate("/");
+      navigate(`/TableQr/${tableId}`);
     } else {
-      navigate(`/categories/${id}`);
+      navigate(`/TableQr/${tableId}/categories/${id}`);
     }
   };
 

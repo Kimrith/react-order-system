@@ -23,9 +23,11 @@ export default function Index() {
         }
       />
 
-
       {/* Top-level page completely separate from the menu/table framework */}
-      <Route path="/TableQr/:tableId/payment-success" element={<PaymentSuccess />} />
+      <Route
+        path="/TableQr/:tableId/payment-success"
+        element={<PaymentSuccess />}
+      />
     </Routes>
   );
 }

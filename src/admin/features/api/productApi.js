@@ -5,12 +5,13 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 /** Fetch all products */
-export const fetchProducts = async (categoryId = null, searchTerm = '') => {
+export const fetchProducts = async (categoryId = null, searchTerm = '', discountStatus = null) => {
     const params = new URLSearchParams();
     if (categoryId) params.append('CategoryId', categoryId);
     if (searchTerm) params.append('SearchTerm', searchTerm);
+    if (discountStatus) params.append('DiscountStatus', discountStatus);
     const queryString = params.toString();
-    const url = `${BASE_URL}/product${queryString ? `?${queryString}` : ''}`;
+    const url = `${BASE_URL}/Product${queryString ? `?${queryString}` : ''}`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch products');
@@ -62,6 +63,37 @@ export const deleteProduct = async (id) => {
         method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete product');
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+};
+
+/** Fetch top products by quantity or revenue */
+export const fetchTopProducts = async (limit = 5, sortBy = 'qty') => {
+    const res = await fetch(`${BASE_URL}/Product/top?limit=${limit}&sortBy=${sortBy}`);
+    if (!res.ok) throw new Error('Failed to fetch top products');
+    return await res.json();
+};
+
+/** Apply discount to a product */
+export const applyDiscount = async (id, discountData) => {
+    const res = await fetch(`${BASE_URL}/product/${id}/apply-discount`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(discountData),
+    });
+    if (!res.ok) throw new Error('Failed to apply discount');
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+};
+
+/** Toggle discount status */
+export const toggleDiscountStatus = async (id, isDiscountOverrideActive) => {
+    const res = await fetch(`${BASE_URL}/Product/${id}/discount-toggle`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isDiscountOverrideActive }),
+    });
+    if (!res.ok) throw new Error('Failed to toggle discount status');
     const text = await res.text();
     return text ? JSON.parse(text) : null;
 };

@@ -12,10 +12,6 @@ import {
     AlertTriangle
 } from 'lucide-react';
 
-// Seed products to reach 13 items as specified in the mock-up's subtitle
-const API_BASE_URL = "https://localhost:7293"; // TODO: set your API base URL
-
-
 export default function MenuManagement() {
     const [categories, setCategories] = useState([
         { id: 'All', name: 'All', icon: '🍽️', isSystem: true, code: 'cat-1', iconBg: 'bg-slate-500/10 text-slate-400' }
@@ -320,7 +316,7 @@ export default function MenuManagement() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     {product.productImg ? (
-                                                        <img src={`${API_BASE_URL + product.productImg}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover" />
+                                                        <img src={`${import.meta.env.VITE_IMAGE_URL + product.productImg}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover" />
                                                     ) : (
                                                         <div className={`w-11 h-11 rounded-xl ${product.iconBg} flex items-center justify-center text-2xl shadow-inner`}>
                                                             {product.icon}
