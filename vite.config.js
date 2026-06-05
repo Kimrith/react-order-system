@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     // This MUST be inside the server block
+
     allowedHosts: true,
   },
 });
