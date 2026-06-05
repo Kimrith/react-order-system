@@ -7,8 +7,7 @@ import {
 } from "react-router-dom";
 import CustomerDashboard from "./customer/routes/CustomerRoutes";
 import AdminRoutes from "./admin/features/routes";
-
-// import StaffDashboard from "./staff";
+import StaffDashboard from "./staff";
 
 export default function App() {
   return (
