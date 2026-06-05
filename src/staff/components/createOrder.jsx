@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Minus, ShoppingCart, Coffee, Wine, Pizza, IceCream, Cookie, ArrowLeft, Trash2, Wallet, QrCode } from 'lucide-react';
-import { getProduct, postOrder, getCategories } from '../../customer/features/services/customerApi';
+import { getProduct, postOrder, getCategories, getTables } from '../../customer/features/services/customerApi';
 
 
 
@@ -12,7 +12,8 @@ export default function CreateOrder() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState({}); // { [productId]: quantity }
-  const [selectedTable, setSelectedTable] = useState('3'); // Use numeric value matching API tableId
+  const [tables, setTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,12 +25,18 @@ export default function CreateOrder() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsData, categoriesData] = await Promise.all([
+        const [productsData, categoriesData, tablesData] = await Promise.all([
           getProduct(),
-          getCategories()
+          getCategories(),
+          getTables()
         ]);
 
         setProducts(productsData || []);
+        
+        if (tablesData && tablesData.length > 0) {
+          setTables(tablesData);
+          setSelectedTable(tablesData[0].tableId);
+        }
 
         const categoryIcons = {
           'Drinks': <Wine size={14} className="mr-2 text-pink-400" />,
@@ -69,7 +76,7 @@ export default function CreateOrder() {
     setIsSubmitting(true);
     try {
       const payload = {
-        tableId: Number(selectedTable),
+        tableId: selectedTable, // Keep as string or whatever the API returned
         items: Object.entries(cart).map(([productId, quantity]) => ({
           productId: Number(productId),
           quantity,
@@ -145,7 +152,7 @@ export default function CreateOrder() {
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">Your Order</h1>
               <p className="text-gray-500 text-sm">
-                Table <span className="text-yellow-500 font-bold">{selectedTable === '3' ? 'A1' : selectedTable}</span>
+                Table <span className="text-yellow-500 font-bold">{selectedTable}</span>
               </p>
             </div>
           </div>
@@ -280,11 +287,9 @@ export default function CreateOrder() {
                 onChange={(e) => setSelectedTable(e.target.value)}
                 className="bg-[#1e2336] text-yellow-500 font-bold border-none outline-none cursor-pointer appearance-none px-1"
               >
-                <option value="A1">A1</option>
-                <option value="A2">A2</option>
-                <option value="B1">B1</option>
-                <option value="B2">B2</option>
-                <option value="3">Table 3</option>
+                {tables.map(t => (
+                  <option key={t.tableId} value={t.tableId}>{t.tableId}</option>
+                ))}
               </select>
               <span className="text-yellow-500 font-bold text-xs">▼</span>
             </div>

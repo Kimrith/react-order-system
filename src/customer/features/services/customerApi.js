@@ -99,3 +99,12 @@ export const getTableByToken = async (token) => {
   }
   return res.json();
 };
+
+// get all tables
+export const getTables = async () => {
+  const res = await fetch(`${API_URL}/TableQr`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch tables");
+  }
+  return res.json();
+};

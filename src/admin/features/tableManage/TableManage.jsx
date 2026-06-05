@@ -31,7 +31,7 @@ export default function TableManage() {
   const fetchTables = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('https://localhost:7293/api/TableQr');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr`);
       if (res.ok) {
         const data = await res.json();
         setTables(data);
@@ -63,7 +63,7 @@ export default function TableManage() {
     }
 
     try {
-      const res = await fetch(`https://localhost:7293/api/TableQr/generate/${encodeURIComponent(trimmed)}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr/generate/${encodeURIComponent(trimmed)}`);
       if (res.ok) {
         const newTable = await res.json();
         setTables(prev => [newTable, ...prev]);
@@ -179,7 +179,7 @@ export default function TableManage() {
     if (!tableToDelete) return;
 
     try {
-      const res = await fetch(`https://localhost:7293/api/TableQr/${encodeURIComponent(deletingTableId)}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr/${encodeURIComponent(deletingTableId)}`, {
         method: 'DELETE'
       });
       if (res.ok) {
