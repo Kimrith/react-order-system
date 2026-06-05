@@ -18,95 +18,18 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
+import { applyDiscount, fetchProducts, toggleDiscountStatus, getProduct } from '../api/productApi';
 
-// Seed products (matching MenuManagement.jsx SEED_PRODUCTS) in case local storage is empty
-const DEFAULT_PRODUCTS = [
-  { id: 1, name: 'Coca-Cola', category: 'Drinks', price: 1.50, icon: '🥤', iconBg: 'bg-pink-500/10 text-pink-400' },
-  { id: 2, name: 'Fresh Orange Juice', category: 'Drinks', price: 3.00, icon: '🍊', iconBg: 'bg-amber-500/10 text-amber-400' },
-  { id: 3, name: 'Iced Coffee', category: 'Drinks', price: 2.50, icon: '☕', iconBg: 'bg-amber-900/20 text-amber-600' },
-  { id: 4, name: 'Thai Milk Tea', category: 'Drinks', price: 2.75, icon: '🧋', iconBg: 'bg-orange-500/10 text-orange-400' },
-  { id: 5, name: 'Sparkling Water', category: 'Drinks', price: 1.00, icon: '💧', iconBg: 'bg-blue-500/10 text-blue-400' },
-  { id: 6, name: 'Beef Burger', category: 'Food', price: 6.50, icon: '🍔', iconBg: 'bg-yellow-600/10 text-yellow-500' },
-  { id: 7, name: 'Chicken Fried Rice', category: 'Food', price: 4.50, icon: '🍚', iconBg: 'bg-red-500/10 text-red-400' },
-  { id: 8, name: 'Grilled Salmon', category: 'Food', price: 9.00, icon: '🐟', iconBg: 'bg-cyan-500/10 text-cyan-400' },
-  { id: 9, name: 'Pad Thai Noodles', category: 'Food', price: 5.00, icon: '🍜', iconBg: 'bg-red-500/10 text-red-400' },
-  { id: 10, name: 'Chocolate Lava Cake', category: 'Desserts', price: 4.50, icon: '🍰', iconBg: 'bg-pink-500/10 text-pink-400' },
-  { id: 11, name: 'Strawberry Cheesecake', category: 'Desserts', price: 5.00, icon: '🍰', iconBg: 'bg-rose-500/10 text-rose-400' },
-  { id: 12, name: 'French Fries', category: 'Snacks', price: 3.00, icon: '🍟', iconBg: 'bg-yellow-500/10 text-yellow-400' },
-  { id: 13, name: 'Crispy Onion Rings', category: 'Snacks', price: 3.50, icon: '🧅', iconBg: 'bg-amber-600/10 text-amber-500' }
-];
 
-// Seed initial discounts for previewing the feature beautifully
-const getInitialDiscounts = () => {
-  const today = new Date();
-
-  // Format date helper
-  const formatDate = (dateObj) => {
-    return dateObj.toISOString().split('T')[0];
-  };
-
-  const activeStart = new Date();
-  activeStart.setDate(today.getDate() - 3);
-  const activeEnd = new Date();
-  activeEnd.setDate(today.getDate() + 4);
-
-  const scheduledStart = new Date();
-  scheduledStart.setDate(today.getDate() + 2);
-  const scheduledEnd = new Date();
-  scheduledEnd.setDate(today.getDate() + 8);
-
-  const expiredStart = new Date();
-  expiredStart.setDate(today.getDate() - 10);
-  const expiredEnd = new Date();
-  expiredEnd.setDate(today.getDate() - 2);
-
-  return [
-    {
-      id: 'd1',
-      productId: 6, // Beef Burger
-      percentage: 20,
-      startDate: formatDate(activeStart),
-      endDate: formatDate(activeEnd),
-      isActive: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'd2',
-      productId: 3, // Iced Coffee
-      percentage: 15,
-      startDate: formatDate(scheduledStart),
-      endDate: formatDate(scheduledEnd),
-      isActive: true,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'd3',
-      productId: 10, // Chocolate Lava Cake
-      percentage: 30,
-      startDate: formatDate(expiredStart),
-      endDate: formatDate(expiredEnd),
-      isActive: true,
-      createdAt: new Date().toISOString()
-    }
-  ];
-};
 
 export default function DiscountManage() {
-  // Load products from localStorage or use defaults
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('coffee_products');
-    return saved ? JSON.parse(saved) : DEFAULT_PRODUCTS;
-  });
-
-  // Load discounts from localStorage or seed
-  const [discounts, setDiscounts] = useState(() => {
-    const saved = localStorage.getItem('coffee_discounts');
-    return saved ? JSON.parse(saved) : getInitialDiscounts();
-  });
+  // Products and discounts states
+  const [products, setProducts] = useState([]);
+  const [discounts, setDiscounts] = useState([]);
 
   // Search and Filter states
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // all, active, scheduled, expired, suspended
+  const [statusFilter, setStatusFilter] = useState('all'); // all, active, upcoming, expired, suspended
 
   // Modal states
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -123,28 +46,66 @@ export default function DiscountManage() {
 
   // Custom Toast State
   const [toastMessage, setToastMessage] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const showToast = (message) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Sync products and discounts with localStorage
+  // Fetch all products on mount (for Target Menu Product dropdown)
   useEffect(() => {
-    localStorage.setItem('coffee_discounts', JSON.stringify(discounts));
-  }, [discounts]);
-
-  // Read updates if menu products change on other tabs/pages
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedProds = localStorage.getItem('coffee_products');
-      if (savedProds) setProducts(JSON.parse(savedProds));
-      const savedDiscounts = localStorage.getItem('coffee_discounts');
-      if (savedDiscounts) setDiscounts(JSON.parse(savedDiscounts));
+    const loadProducts = async () => {
+      try {
+        const apiProducts = await fetchProducts();
+        const formattedProducts = apiProducts.map(p => ({
+          id: p.id,
+          name: p.name,
+          category: p.categoryName || 'Unknown',
+          price: p.price,
+          icon: p.categoryName === 'Drinks' ? '🥤' : p.categoryName === 'Food' ? '🍔' : p.categoryName === 'Desserts' ? '🍰' : '🍽️',
+          iconBg: p.categoryName === 'Drinks' ? 'bg-blue-500/10 text-blue-400' : 'bg-slate-500/10 text-slate-400',
+          productImg: p.productImg
+        }));
+        setProducts(formattedProducts);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+      }
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    loadProducts();
+  }, [refreshTrigger]);
+
+  // Fetch discounts with API filter support
+  useEffect(() => {
+    const loadDiscounts = async () => {
+      try {
+        const statusParam = statusFilter === 'all' ? null : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+        const apiProducts = await fetchProducts(null, searchQuery, statusParam);
+
+        const activeDiscounts = apiProducts
+          .filter(p => p.discountPercentage && p.discountPercentage > 0)
+          .map(p => ({
+            id: `d-${p.id}`,
+            productId: p.id,
+            percentage: p.discountPercentage,
+            startDate: p.discountStartDate ? p.discountStartDate.split('T')[0] : '',
+            endDate: p.discountEndDate ? p.discountEndDate.split('T')[0] : '',
+            isActive: p.isDiscountOverrideActive !== undefined ? p.isDiscountOverrideActive : true,
+            statusBadge: p.discountStatusBadge,
+            createdAt: new Date().toISOString()
+          }));
+        setDiscounts(activeDiscounts);
+      } catch (err) {
+        console.error("Failed to fetch products for discounts:", err);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      loadDiscounts();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, statusFilter, refreshTrigger]);
 
   // Map product information easily by id
   const productMap = useMemo(() => {
@@ -162,19 +123,24 @@ export default function DiscountManage() {
 
   // Compute status for an individual discount
   const getDiscountStatus = (discount) => {
+    if (discount.statusBadge) {
+      const badge = discount.statusBadge.toLowerCase();
+      if (badge === 'upcoming') return 'upcoming';
+      return badge;
+    }
     if (!discount.isActive) {
       if (discount.endDate < todayStr) return 'expired';
       return 'suspended';
     }
     if (todayStr > discount.endDate) return 'expired';
-    if (todayStr < discount.startDate) return 'scheduled';
+    if (todayStr < discount.startDate) return 'upcoming';
     return 'active';
   };
 
   // Compute overall dashboard statistics
   const stats = useMemo(() => {
     let activeCount = 0;
-    let scheduledCount = 0;
+    let upcomingCount = 0;
     let expiredCount = 0;
     let suspendedCount = 0;
     let totalDiscountPercent = 0;
@@ -187,8 +153,8 @@ export default function DiscountManage() {
         activeCount++;
         totalDiscountPercent += d.percentage;
         activeDiscountsCount++;
-      } else if (status === 'scheduled') {
-        scheduledCount++;
+      } else if (status === 'upcoming') {
+        upcomingCount++;
       } else if (status === 'expired') {
         expiredCount++;
       } else if (status === 'suspended') {
@@ -206,7 +172,7 @@ export default function DiscountManage() {
 
     return {
       active: activeCount,
-      scheduled: scheduledCount,
+      upcoming: upcomingCount,
       expired: expiredCount,
       suspended: suspendedCount,
       total: discounts.length,
@@ -215,19 +181,8 @@ export default function DiscountManage() {
     };
   }, [discounts, todayStr]);
 
-  // Filtered & Searched Discounts
-  const filteredDiscounts = useMemo(() => {
-    return discounts.filter((d) => {
-      const product = productMap[d.productId];
-      const productName = product ? product.name.toLowerCase() : '';
-      const matchesSearch = productName.includes(searchQuery.toLowerCase());
-
-      const status = getDiscountStatus(d);
-      const matchesStatus = statusFilter === 'all' || status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [discounts, searchQuery, statusFilter, productMap, todayStr]);
+  // Filtered & Searched Discounts (Now backend does the filtering)
+  const filteredDiscounts = discounts;
 
   // Handle opening form modal to ADD a discount
   const handleAddNewClick = () => {
@@ -247,29 +202,44 @@ export default function DiscountManage() {
   };
 
   // Handle opening form modal to EDIT an existing discount
-  const handleEditClick = (discount) => {
-    setEditingDiscount(discount);
-    setFormProductId(discount.productId.toString());
-    setFormPercentage(discount.percentage);
-    setFormStartDate(discount.startDate);
-    setFormEndDate(discount.endDate);
-    setFormIsActive(discount.isActive);
-    setIsFormModalOpen(true);
+  const handleEditClick = async (discount) => {
+    try {
+      const productData = await getProduct(discount.productId);
+      setEditingDiscount(discount);
+      setFormProductId(discount.productId.toString());
+      setFormPercentage(productData.discountPercentage || discount.percentage);
+      setFormStartDate(productData.discountStartDate ? productData.discountStartDate.split('T')[0] : discount.startDate);
+      setFormEndDate(productData.discountEndDate ? productData.discountEndDate.split('T')[0] : discount.endDate);
+      setFormIsActive(productData.isDiscountOverrideActive !== undefined ? productData.isDiscountOverrideActive : discount.isActive);
+      setIsFormModalOpen(true);
+    } catch (err) {
+      showToast('Failed to load product details for edit.');
+      console.error(err);
+    }
   };
 
   // Toggle active status directly from row switch
-  const handleToggleStatus = (id) => {
-    setDiscounts(prev =>
-      prev.map((d) => {
-        if (d.id === id) {
-          const newStatus = !d.isActive;
-          const prod = productMap[d.productId];
-          showToast(`"${prod?.name || 'Discount'}" promotion ${newStatus ? 'activated' : 'paused'}!`);
-          return { ...d, isActive: newStatus };
-        }
-        return d;
-      })
-    );
+  const handleToggleStatus = async (id, productId, currentStatus) => {
+    try {
+      const newStatus = !currentStatus;
+      await toggleDiscountStatus(productId, newStatus);
+
+      setDiscounts(prev =>
+        prev.map((d) => {
+          if (d.id === id) {
+            const prod = productMap[d.productId];
+            showToast(`"${prod?.name || 'Discount'}" promotion ${newStatus ? 'activated' : 'paused'}!`);
+            return { ...d, isActive: newStatus };
+          }
+          return d;
+        })
+      );
+      setRefreshTrigger(prev => prev + 1);
+
+    } catch (error) {
+      showToast(`Failed to toggle discount: ${error.message}`);
+      console.error(error);
+    }
   };
 
   // Handle deleting discount
@@ -284,10 +254,11 @@ export default function DiscountManage() {
     setDiscounts(prev => prev.filter(d => d.id !== deletingDiscountId));
     showToast(`Promotion for "${prod?.name || 'product'}" deleted successfully.`);
     setIsDeleteModalOpen(false);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   // Save (Create/Update) Discount logic
-  const handleSaveDiscount = (e) => {
+  const handleSaveDiscount = async (e) => {
     e.preventDefault();
     if (!formProductId || !formPercentage || !formStartDate || !formEndDate) {
       showToast('Please fill in all required fields.');
@@ -300,7 +271,7 @@ export default function DiscountManage() {
     }
 
     const prodIdNum = parseInt(formProductId);
-    const percentNum = parseInt(formPercentage);
+    const percentNum = parseFloat(formPercentage);
 
     // Check if an overlapping discount already exists for the same product
     const isOverlapping = discounts.some((d) => {
@@ -319,6 +290,21 @@ export default function DiscountManage() {
     }
 
     const prod = productMap[prodIdNum];
+
+    try {
+      const startDateString = new Date(`${formStartDate}T00:00:00Z`).toISOString();
+      const endDateString = new Date(`${formEndDate}T23:59:59Z`).toISOString();
+
+      await applyDiscount(prodIdNum, {
+        discountPercentage: percentNum,
+        discountStartDate: startDateString,
+        discountEndDate: endDateString
+      });
+    } catch (error) {
+      showToast(`Failed to update server: ${error.message}`);
+      console.error(error);
+      return;
+    }
 
     if (editingDiscount) {
       // UPDATE
@@ -353,6 +339,7 @@ export default function DiscountManage() {
     }
 
     setIsFormModalOpen(false);
+    setRefreshTrigger(prev => prev + 1);
   };
 
   // Live Calculator Visualizer Helper values
@@ -434,7 +421,7 @@ export default function DiscountManage() {
           {[
             { id: 'all', name: 'All Promos', icon: <Tag size={14} /> },
             { id: 'active', name: 'Active Now', icon: <Play size={14} className="fill-current" /> },
-            { id: 'scheduled', name: 'Scheduled', icon: <Clock size={14} /> },
+            { id: 'upcoming', name: 'upcoming', icon: <Calendar size={14} /> },
             { id: 'expired', name: 'Expired', icon: <AlertTriangle size={14} /> },
             { id: 'suspended', name: 'Suspended', icon: <Pause size={14} /> }
           ].map((tab) => {
@@ -491,9 +478,9 @@ export default function DiscountManage() {
                         badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
                         badgeLabel = 'Active Now';
                         break;
-                      case 'scheduled':
+                      case 'upcoming':
                         badgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                        badgeLabel = 'Scheduled';
+                        badgeLabel = 'upcoming';
                         break;
                       case 'expired':
                         badgeClass = 'bg-red-500/10 text-red-400 border-red-500/20';
@@ -519,8 +506,12 @@ export default function DiscountManage() {
                         {/* Name Column */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className={`w-11 h-11 rounded-xl ${product.iconBg || 'bg-slate-500/10 text-slate-400'} flex items-center justify-center text-2xl shadow-inner`}>
-                              {product.icon || '🍽️'}
+                            <div className={`w-11 h-11 rounded-xl ${product.iconBg || 'bg-slate-500/10 text-slate-400'} flex items-center justify-center text-2xl shadow-inner overflow-hidden`}>
+                              {product.productImg ? (
+                                <img src={`${import.meta.env.VITE_IMAGE_URL + product.productImg}`} alt={product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                product.icon || '🍽️'
+                              )}
                             </div>
                             <div>
                               <div className="font-bold text-white text-[15px] group-hover:text-violet-400 transition-colors">
@@ -573,11 +564,11 @@ export default function DiscountManage() {
                         {/* Active Switch Toggle */}
                         <td className="px-6 py-4">
                           <button
-                            onClick={() => handleToggleStatus(discount.id)}
+                            onClick={() => handleToggleStatus(discount.id, discount.productId, discount.isActive)}
                             disabled={status === 'expired'}
                             className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${status === 'expired'
-                                ? 'bg-gray-800 opacity-40 cursor-not-allowed'
-                                : discount.isActive ? 'bg-[#10B981]' : 'bg-gray-700/60'
+                              ? 'bg-gray-800 opacity-40 cursor-not-allowed'
+                              : discount.isActive ? 'bg-[#10B981]' : 'bg-gray-700/60'
                               }`}
                           >
                             <span
@@ -597,13 +588,13 @@ export default function DiscountManage() {
                             >
                               <Pencil size={15} />
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => handleDeleteClick(discount.id)}
                               className="p-2 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-lg transition-colors shadow-lg shadow-red-500/10"
                               title="Delete Promotion"
                             >
                               <Trash2 size={15} />
-                            </button>
+                            </button> */}
                           </div>
                         </td>
                       </motion.tr>
@@ -675,12 +666,13 @@ export default function DiscountManage() {
                   <select
                     value={formProductId}
                     onChange={(e) => setFormProductId(e.target.value)}
-                    className="w-full px-4 py-3 bg-[#131924] text-white border border-gray-800 rounded-xl focus:outline-none focus:border-violet-500 transition-colors cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#131924] text-white border border-gray-800 rounded-xl focus:outline-none focus:border-violet-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     required
+                    disabled={!!editingDiscount}
                   >
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.icon || '🍽️'} {p.name} (Reg: ${p.price.toFixed(2)})
+                        {p.name} (Reg: ${p.price.toFixed(2)})
                       </option>
                     ))}
                   </select>

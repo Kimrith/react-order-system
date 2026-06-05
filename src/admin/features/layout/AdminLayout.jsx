@@ -13,10 +13,11 @@ const AdminLayout = () => {
   const menuItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={22} /> },
     { name: 'Products', path: '/admin/products', icon: <Package size={22} /> },
-    { name: 'Categories', path: '/admin/categories', icon: <Layers size={22} /> },
-    { name: 'Table Managements', path: '/admin/tables', icon: <TableProperties size={22} /> },
-    { name: 'History', path: '/admin/history', icon: <History size={22} /> },
     { name: 'Discount Manage', path: '/admin/discounts', icon: <Percent size={22} /> },
+    { name: 'Categories', path: '/admin/categories', icon: <Layers size={22} /> },
+    { name: 'History', path: '/admin/history', icon: <History size={22} /> },
+    { name: 'Table Managements', path: '/admin/tables', icon: <TableProperties size={22} /> },
+
   ];
 
   return (
