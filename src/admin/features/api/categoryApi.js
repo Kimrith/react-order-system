@@ -1,15 +1,15 @@
-// src/admin/features/api/categoryApi.js
+// src/admin/features/categoryApi.js
 
 const BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7293";
 
 export const fetchCategories = async () => {
-    const res = await fetch(`${BASE_URL}/api/Categories`);
+    const res = await fetch(`${BASE_URL}/Categories`);
     if (!res.ok) throw new Error('Failed to fetch categories');
     return await res.json();
 };
 
 export const createCategory = async (categoryData) => {
-    const res = await fetch(`${BASE_URL}/api/Categories`, {
+    const res = await fetch(`${BASE_URL}/Categories`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export const createCategory = async (categoryData) => {
 };
 
 export const updateCategory = async (id, categoryData) => {
-    const res = await fetch(`${BASE_URL}/api/Categories/${id}`, {
+    const res = await fetch(`${BASE_URL}/Categories/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ export const updateCategory = async (id, categoryData) => {
 };
 
 export const deleteCategory = async (id) => {
-    const res = await fetch(`${BASE_URL}/api/Categories/${id}`, {
+    const res = await fetch(`${BASE_URL}/Categories/${id}`, {
         method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete category');
