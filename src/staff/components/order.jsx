@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Bell, Flame, CheckCircle2, Clock, Check, Receipt } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import ReceiptModal from './ReceiptModal';
+
 
 // const initialOrders = [
 //   {
@@ -99,7 +102,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const OrderCard = ({ order, onUpdateStatus }) => {
+const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
   return (
     <div className="bg-[#15192b] rounded-xl p-4 border border-gray-800/50 flex flex-col gap-4 relative overflow-hidden group shrink-0">
       {/* Top Border Accent */}
@@ -199,7 +202,13 @@ const OrderCard = ({ order, onUpdateStatus }) => {
           </button>
         )}
 
-        <button className="flex-1 bg-[#2a2a35] hover:bg-[#32323e] text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewReceipt && onViewReceipt(order);
+          }}
+          className="flex-1 bg-[#2a2a35] hover:bg-[#32323e] text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors"
+        >
           <Receipt size={14} /> Receipt
         </button>
       </div>
@@ -208,6 +217,16 @@ const OrderCard = ({ order, onUpdateStatus }) => {
 };
 
 export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
+  const [activeReceiptOrder, setActiveReceiptOrder] = useState(null);
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64 w-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   // Use API orders directly
   const displayOrders = orders;
 
@@ -228,7 +247,14 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
           <span className="bg-[#15192b] text-gray-400 text-xs font-bold px-3 py-1 rounded-full">{pendingOrders.length}</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar">
-          {pendingOrders.map(order => <OrderCard key={order.id} order={order} onUpdateStatus={onUpdateStatus} />)}
+          {pendingOrders.map(order => (
+            <OrderCard 
+              key={order.id} 
+              order={order} 
+              onUpdateStatus={onUpdateStatus} 
+              onViewReceipt={setActiveReceiptOrder} 
+            />
+          ))}
         </div>
       </div>
 
@@ -242,7 +268,14 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
           <span className="bg-[#15192b] text-gray-400 text-xs font-bold px-3 py-1 rounded-full">{kitchenOrders.length}</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar">
-          {kitchenOrders.map(order => <OrderCard key={order.id} order={order} onUpdateStatus={onUpdateStatus} />)}
+          {kitchenOrders.map(order => (
+            <OrderCard 
+              key={order.id} 
+              order={order} 
+              onUpdateStatus={onUpdateStatus} 
+              onViewReceipt={setActiveReceiptOrder} 
+            />
+          ))}
         </div>
       </div>
 
@@ -256,10 +289,25 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
           <span className="bg-[#15192b] text-gray-400 text-xs font-bold px-3 py-1 rounded-full">{servedOrders.length}</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar">
-          {servedOrders.map(order => <OrderCard key={order.id} order={order} onUpdateStatus={onUpdateStatus} />)}
+          {servedOrders.map(order => (
+            <OrderCard 
+              key={order.id} 
+              order={order} 
+              onUpdateStatus={onUpdateStatus} 
+              onViewReceipt={setActiveReceiptOrder} 
+            />
+          ))}
         </div>
       </div>
 
+      <AnimatePresence>
+        {activeReceiptOrder && (
+          <ReceiptModal 
+            order={activeReceiptOrder} 
+            onClose={() => setActiveReceiptOrder(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

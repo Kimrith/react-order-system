@@ -1,4 +1,3 @@
-import React from 'react';
 import { ShoppingBag, FilePlus, Package, LayoutGrid, LogOut } from 'lucide-react';
 
 export default function Navbar({ activeTab = 'Orders', setActiveTab }) {

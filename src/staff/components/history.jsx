@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, FileText, Printer, TriangleAlert, Check, StickyNote } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { fetchOrderHistory } from '../api/orders';
+import ReceiptModal from './ReceiptModal';
+
 
 export default function History() {
   const [orders, setOrders] = useState([]);
@@ -8,8 +11,9 @@ export default function History() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('today');
+  const [activeReceiptOrder, setActiveReceiptOrder] = useState(null);
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setIsLoading(true);
     try {
       let from = null;
@@ -63,11 +67,14 @@ export default function History() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [dateFilter]);
 
   useEffect(() => {
-    loadHistory();
-  }, [dateFilter]);
+    const timer = setTimeout(() => {
+      loadHistory();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadHistory]);
 
   // Filtering based on search (ID or Table)
   const filteredOrders = orders.filter(order => {
@@ -218,7 +225,10 @@ export default function History() {
 
                   {/* Actions */}
                   <div className="flex justify-end">
-                    <button className="flex items-center gap-2 bg-[#15192b] hover:bg-[#2a2a35] border border-[#2a2a35] hover:border-gray-600 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                    <button 
+                      onClick={() => setActiveReceiptOrder(order)}
+                      className="flex items-center gap-2 bg-[#15192b] hover:bg-[#2a2a35] border border-[#2a2a35] hover:border-gray-600 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                    >
                       <Printer size={14} />
                       Print
                     </button>
@@ -229,6 +239,14 @@ export default function History() {
           )}
         </div>
       </div>
+      <AnimatePresence>
+        {activeReceiptOrder && (
+          <ReceiptModal 
+            order={activeReceiptOrder} 
+            onClose={() => setActiveReceiptOrder(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
