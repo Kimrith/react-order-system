@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom"; // Import this hook
+import { useOutletContext, useParams } from "react-router-dom"; // Import this hook
 import { getProduct, postOrder } from "../services/customerApi";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
+  const { tableId } = useParams();
 
   // 1. Grab the searchQuery passed from the Header's <Outlet />
   const { searchQuery } = useOutletContext();
@@ -52,7 +53,7 @@ export default function Product() {
   const handleCheckout = async () => {
     try {
       const payload = {
-        tableId: 3,
+        tableId: tableId,
         items: Object.values(cart).map((item) => ({
           productId: Number(item.productId),
           quantity: item.quantity,
