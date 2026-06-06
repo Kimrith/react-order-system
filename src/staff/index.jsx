@@ -8,9 +8,8 @@ import History from './components/history';
 import { ChevronDown, Plus } from 'lucide-react';
 import { fetchOrders, updateOrderStatus } from './api/orders';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL.replace('/api', '') 
-  : 'https://localhost:7293';
+const API_URL = import.meta.env.VITE_API_URL || "http://3.27.242.36/api";
+const SOCKET_URL = API_URL.replace('/api', '');
 
 export default function StaffDashboard() {
   const [activeTab, setActiveTab] = useState('Orders');

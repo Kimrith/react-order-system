@@ -2,7 +2,7 @@
 // Centralized API helper for product management.
 // Uses Vite's environment variable for base URL (VITE_API_BASE_URL).
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL || "http://3.27.242.36/api";
 
 /** Fetch all products */
 export const fetchProducts = async (categoryId = null, searchTerm = '', discountStatus = null) => {

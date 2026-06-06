@@ -13,6 +13,8 @@ import {
   Info
 } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://3.27.242.36/api";
+
 export default function TableManage() {
   const [tables, setTables] = useState([]);
   const [tableNumber, setTableNumber] = useState('');
@@ -31,7 +33,7 @@ export default function TableManage() {
   const fetchTables = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr`);
+      const res = await fetch(`${API_URL}/TableQr`);
       if (res.ok) {
         const data = await res.json();
         setTables(data);
@@ -63,7 +65,7 @@ export default function TableManage() {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr/generate/${encodeURIComponent(trimmed)}`);
+      const res = await fetch(`${API_URL}/TableQr/generate/${encodeURIComponent(trimmed)}`);
       if (res.ok) {
         const newTable = await res.json();
         setTables(prev => [newTable, ...prev]);
@@ -179,7 +181,7 @@ export default function TableManage() {
     if (!tableToDelete) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr/${encodeURIComponent(deletingTableId)}`, {
+      const res = await fetch(`${API_URL}/TableQr/${encodeURIComponent(deletingTableId)}`, {
         method: 'DELETE'
       });
       if (res.ok) {

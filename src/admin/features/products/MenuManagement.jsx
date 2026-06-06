@@ -316,7 +316,7 @@ export default function MenuManagement() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-4">
                                                     {product.productImg ? (
-                                                        <img src={`${import.meta.env.VITE_IMAGE_URL + product.productImg}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover" />
+                                                        <img src={`${(import.meta.env.VITE_IMAGE_URL || "http://3.27.242.36") + product.productImg}`} alt={product.name} className="w-11 h-11 rounded-xl object-cover" />
                                                     ) : (
                                                         <div className={`w-11 h-11 rounded-xl ${product.iconBg} flex items-center justify-center text-2xl shadow-inner`}>
                                                             {product.icon}
