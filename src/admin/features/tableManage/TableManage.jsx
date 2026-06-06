@@ -1,80 +1,55 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  QrCode, 
-  Trash2, 
-  Copy, 
-  Download, 
-  Printer, 
-  Check, 
+import {
+  QrCode,
+  Trash2,
+  Copy,
+  Download,
+  Printer,
+  Check,
   AlertTriangle,
   Plus,
   ExternalLink,
   Info
 } from 'lucide-react';
-import QRCode from 'qrcode';
-
-// Seed data to match existing project tables
-const SEED_TABLES = [
-  { id: 't1', number: 'A1', url: `${window.location.origin}/?table=A1`, status: 'Available', createdAt: '2026-05-21T10:00:00Z' },
-  { id: 't2', number: 'A2', url: `${window.location.origin}/?table=A2`, status: 'Occupied', createdAt: '2026-05-21T10:30:00Z' },
-  { id: 't3', number: 'A3', url: `${window.location.origin}/?table=A3`, status: 'Available', createdAt: '2026-05-21T11:00:00Z' },
-  { id: 't4', number: 'A4', url: `${window.location.origin}/?table=A4`, status: 'Available', createdAt: '2026-05-21T11:15:00Z' },
-];
 
 export default function TableManage() {
-  const [tables, setTables] = useState(() => {
-    const saved = localStorage.getItem('coffee_tables');
-    return saved ? JSON.parse(saved) : SEED_TABLES;
-  });
-
+  const [tables, setTables] = useState([]);
   const [tableNumber, setTableNumber] = useState('');
-  const [qrUrls, setQrUrls] = useState({});
   const [toastMessage, setToastMessage] = useState(null);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   // Modal for viewing QR details
   const [selectedTable, setSelectedTable] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingTableId, setDeletingTableId] = useState(null);
 
-  // Sync to localStorage
   useEffect(() => {
-    localStorage.setItem('coffee_tables', JSON.stringify(tables));
-  }, [tables]);
+    fetchTables();
+  }, []);
 
-  // Generate Data URLs for QR codes of all tables
-  useEffect(() => {
-    const generateAllQRs = async () => {
-      const urls = {};
-      for (const t of tables) {
-        try {
-          const dataUrl = await QRCode.toDataURL(t.url, {
-            width: 300,
-            margin: 2,
-            color: {
-              dark: '#1C2536',
-              light: '#FFFFFF'
-            }
-          });
-          urls[t.id] = dataUrl;
-        } catch (err) {
-          console.error('Failed to generate QR for ', t.number, err);
-        }
+  const fetchTables = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr`);
+      if (res.ok) {
+        const data = await res.json();
+        setTables(data);
       }
-      setQrUrls(urls);
-    };
-
-    if (tables.length > 0) {
-      generateAllQRs();
+    } catch (err) {
+      console.error('Failed to fetch tables:', err);
+      showToast('Failed to load tables');
+    } finally {
+      setIsLoading(false);
     }
-  }, [tables]);
+  };
 
   const showToast = (message) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleGenerateQR = (e) => {
+  const handleGenerateQR = async (e) => {
     e.preventDefault();
     const trimmed = tableNumber.trim();
     if (!trimmed) {
@@ -82,24 +57,25 @@ export default function TableManage() {
       return;
     }
 
-    // Check if table number already exists
-    if (tables.some(t => t.number.toLowerCase() === trimmed.toLowerCase())) {
+    if (tables.some(t => t.tableId.toLowerCase() === trimmed.toLowerCase())) {
       showToast(`Table "${trimmed}" already exists!`);
       return;
     }
 
-    const newTableId = `t-${Date.now()}`;
-    const newTable = {
-      id: newTableId,
-      number: trimmed,
-      url: `${window.location.origin}/?table=${encodeURIComponent(trimmed)}`,
-      status: 'Available',
-      createdAt: new Date().toISOString()
-    };
-
-    setTables(prev => [newTable, ...prev]);
-    setTableNumber('');
-    showToast(`Table "${trimmed}" QR code generated successfully!`);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr/generate/${encodeURIComponent(trimmed)}`);
+      if (res.ok) {
+        const newTable = await res.json();
+        setTables(prev => [newTable, ...prev]);
+        setTableNumber('');
+        showToast(`Table "${trimmed}" QR code generated successfully!`);
+      } else {
+        showToast(`Failed to generate table!`);
+      }
+    } catch (err) {
+      console.error('Failed to generate table:', err);
+      showToast('Error generating table');
+    }
   };
 
   const handleCopyLink = (url, label) => {
@@ -108,27 +84,27 @@ export default function TableManage() {
   };
 
   const handleDownloadQR = (table) => {
-    const qrUrl = qrUrls[table.id];
+    const qrUrl = table.qrCodeImageBase64;
     if (!qrUrl) return;
 
     const link = document.createElement('a');
     link.href = qrUrl;
-    link.download = `Table_${table.number}_QR.png`;
+    link.download = `Table_${table.tableId}_QR.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast(`Downloaded Table ${table.number} QR code!`);
+    showToast(`Downloaded Table ${table.tableId} QR code!`);
   };
 
   const handlePrintQR = (table) => {
-    const qrUrl = qrUrls[table.id];
+    const qrUrl = table.qrCodeImageBase64;
     if (!qrUrl) return;
 
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
         <head>
-          <title>Print QR - Table ${table.number}</title>
+          <title>Print QR - Table ${table.tableId}</title>
           <style>
             body {
               display: flex;
@@ -176,10 +152,10 @@ export default function TableManage() {
         <body>
           <div class="container">
             <p>CAFÉ POS SYSTEM</p>
-            <h1>Table ${table.number}</h1>
+            <h1>Table ${table.tableId}</h1>
             <img src="${qrUrl}" />
             <p>Scan to View Menu & Place Order</p>
-            <div class="footer-url">${table.url}</div>
+            <div class="footer-url">${table.encryptedUrl}</div>
           </div>
           <script>
             window.onload = function() {
@@ -198,22 +174,35 @@ export default function TableManage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    const tableToDelete = tables.find(t => t.id === deletingTableId);
+  const handleConfirmDelete = async () => {
+    const tableToDelete = tables.find(t => t.tableId === deletingTableId);
     if (!tableToDelete) return;
 
-    setTables(prev => prev.filter(t => t.id !== deletingTableId));
-    showToast(`Table "${tableToDelete.number}" setup deleted.`);
-    setIsDeleteModalOpen(false);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/TableQr/${encodeURIComponent(deletingTableId)}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setTables(prev => prev.filter(t => t.tableId !== deletingTableId));
+        showToast(`Table "${tableToDelete.tableId}" setup deleted.`);
+      } else {
+        showToast('Failed to delete table');
+      }
+    } catch (err) {
+      console.error('Failed to delete table:', err);
+      showToast('Error deleting table');
+    } finally {
+      setIsDeleteModalOpen(false);
+    }
   };
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
-      
+
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -240,12 +229,12 @@ export default function TableManage() {
       {/* QR Link Generator Card - Matching UI mock precisely */}
       <div className="bg-[#1C2536]/40 backdrop-blur-md rounded-2xl border border-gray-800/60 p-6 shadow-xl relative overflow-hidden">
         <div className="text-sm font-semibold text-white mb-4">QR Link Generator</div>
-        
+
         <form onSubmit={handleGenerateQR} className="flex flex-col lg:flex-row lg:items-center gap-5">
           <div className="text-gray-400 text-[14px] font-sans font-medium">
             Generator unique URLs for scanning :
           </div>
-          
+
           <div className="flex-1 flex flex-col sm:flex-row gap-3">
             <input
               type="text"
@@ -273,12 +262,12 @@ export default function TableManage() {
             Active Tables ({tables.length})
           </h2>
           <span className="text-xs font-semibold text-gray-500 uppercase bg-[#0B0E14] border border-gray-800/50 px-3 py-1 rounded-full font-mono">
-            Local Storage Synced
+            API Synced
           </span>
         </div>
 
         {/* Empty State */}
-        {tables.length === 0 && (
+        {tables.length === 0 && !isLoading && (
           <div className="text-center py-16 bg-[#1C2536]/20 border border-dashed border-gray-800 rounded-2xl">
             <QrCode className="mx-auto text-gray-600 mb-4" size={48} />
             <h3 className="text-lg font-bold text-gray-300">No active tables found</h3>
@@ -288,14 +277,23 @@ export default function TableManage() {
           </div>
         )}
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-16">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
         {/* Tables Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <AnimatePresence>
             {tables.map((table) => {
-              const qrSrc = qrUrls[table.id];
+              const qrSrc = table.qrCodeImageBase64;
+              const isOccupied = table.orders?.length > 0;
+
               return (
                 <motion.div
-                  key={table.id}
+                  key={table.tableId}
                   layout
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -308,31 +306,27 @@ export default function TableManage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
-                          Table {table.number}
+                          Table {table.tableId}
                         </h3>
-                        <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                          {new Date(table.createdAt).toLocaleDateString()}
-                        </p>
                       </div>
-                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
-                        table.status === 'Occupied' 
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      }`}>
-                        {table.status}
+                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${isOccupied
+                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        }`}>
+                        {isOccupied ? 'Occupied' : 'Available'}
                       </span>
                     </div>
 
                     {/* QR Code Container */}
-                    <div 
+                    <div
                       onClick={() => setSelectedTable(table)}
                       className="aspect-square bg-white rounded-xl p-3 flex items-center justify-center cursor-pointer border border-gray-800/20 shadow-inner hover:scale-[1.02] active:scale-98 transition-transform duration-200"
                       title="Click to expand QR Code"
                     >
                       {qrSrc ? (
-                        <img 
-                          src={qrSrc} 
-                          alt={`Table ${table.number} QR`} 
+                        <img
+                          src={qrSrc}
+                          alt={`Table ${table.tableId} QR`}
                           className="w-full h-full object-contain"
                         />
                       ) : (
@@ -344,9 +338,9 @@ export default function TableManage() {
 
                     {/* URL Link Section */}
                     <div className="bg-[#0B0E14]/80 border border-gray-800/60 px-3 py-2 rounded-xl flex items-center justify-between text-xs text-gray-400 font-mono overflow-hidden">
-                      <span className="truncate flex-1 pr-2">{table.url}</span>
-                      <button 
-                        onClick={() => handleCopyLink(table.url, table.number)}
+                      <span className="truncate flex-1 pr-2">{table.encryptedUrl}</span>
+                      <button
+                        onClick={() => handleCopyLink(table.encryptedUrl, table.tableId)}
                         className="text-gray-500 hover:text-white transition-colors"
                         title="Copy scan link"
                       >
@@ -375,7 +369,7 @@ export default function TableManage() {
                     </div>
 
                     <button
-                      onClick={() => handleDeleteClick(table.id)}
+                      onClick={() => handleDeleteClick(table.tableId)}
                       className="p-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-lg transition-all border border-red-500/20 hover:border-transparent"
                       title="Delete Table"
                     >
@@ -393,14 +387,14 @@ export default function TableManage() {
       <AnimatePresence>
         {selectedTable && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedTable(null)}
               className="absolute inset-0 bg-[#070A0F]/80 backdrop-blur-md"
             />
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -409,8 +403,8 @@ export default function TableManage() {
             >
               {/* Header */}
               <div className="w-full flex justify-between items-center pb-2 border-b border-gray-800">
-                <h3 className="text-xl font-bold text-white">Table {selectedTable.number} QR Code</h3>
-                <button 
+                <h3 className="text-xl font-bold text-white">Table {selectedTable.tableId} QR Code</h3>
+                <button
                   onClick={() => setSelectedTable(null)}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
@@ -420,9 +414,9 @@ export default function TableManage() {
 
               {/* Big QR Preview */}
               <div className="w-64 h-64 bg-white rounded-2xl p-4 flex items-center justify-center shadow-2xl">
-                <img 
-                  src={qrUrls[selectedTable.id]} 
-                  alt={`Table ${selectedTable.number}`} 
+                <img
+                  src={selectedTable.qrCodeImageBase64}
+                  alt={`Table ${selectedTable.tableId}`}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -430,7 +424,7 @@ export default function TableManage() {
               <div className="text-center space-y-1.5 w-full">
                 <span className="text-gray-400 text-xs">Customer Scan URL</span>
                 <div className="bg-[#0B0E14] border border-gray-800/80 p-2.5 rounded-xl text-xs text-blue-400 font-mono break-all text-center selection:bg-blue-500/20 select-all">
-                  {selectedTable.url}
+                  {selectedTable.encryptedUrl}
                 </div>
               </div>
 
@@ -460,14 +454,14 @@ export default function TableManage() {
       <AnimatePresence>
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDeleteModalOpen(false)}
               className="absolute inset-0 bg-[#070A0F]/80 backdrop-blur-md"
             />
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -482,8 +476,8 @@ export default function TableManage() {
               </div>
 
               <p className="text-gray-400 text-[15px] leading-relaxed">
-                Are you sure you want to delete this table? 
-                Customers will no longer be able to scan this QR code to access the POS ordering menu. 
+                Are you sure you want to delete this table?
+                Customers will no longer be able to scan this QR code to access the POS ordering menu.
                 This action cannot be undone.
               </p>
 
