@@ -162,7 +162,7 @@ export default function CreateOrder() {
             {Object.entries(cart).map(([productId, qty]) => {
               const product = products.find(p => String(p.id) === productId);
               if (!product) return null;
-              const imageUrl = `${import.meta.env.VITE_IMAGE_URL || 'https://localhost:7293/uploads/'}${product.productImg}`;
+              const imageUrl = `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`;
 
               return (
                 <div key={productId} className="flex items-center justify-between py-4 border-b border-[#2a2a35] group">
@@ -346,7 +346,7 @@ export default function CreateOrder() {
             {filteredProducts.map((product) => {
               const qty = cart[product.id] || 0;
               const isAvailable = product.isAvailable !== false; // Default to true if undefined
-              const imageUrl = `${import.meta.env.VITE_IMAGE_URL || 'https://localhost:7293/uploads/'}${product.productImg}`;
+              const imageUrl = `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`;
 
               return (
                 <div

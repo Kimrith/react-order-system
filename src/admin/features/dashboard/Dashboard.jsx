@@ -327,7 +327,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden">
                       {product.productImg ? (
                         <img
-                          src={`${import.meta.env.VITE_IMAGE_URL || "http://3.27.242.36"}${product.productImg}`}
+                          src={`${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`}
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />

@@ -13,7 +13,7 @@ import {
   Info
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://3.27.242.36/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 export default function TableManage() {
   const [tables, setTables] = useState([]);

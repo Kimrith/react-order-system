@@ -1,6 +1,6 @@
 // src/admin/features/categoryApi.js
 
-const BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7293";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export const fetchCategories = async () => {
     const res = await fetch(`${BASE_URL}/Categories`);

@@ -8,7 +8,7 @@ import History from './components/history';
 import { ChevronDown, Plus } from 'lucide-react';
 import { fetchOrders, updateOrderStatus } from './api/orders';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://3.27.242.36/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 const SOCKET_URL = API_URL.replace('/api', '');
 
 export default function StaffDashboard() {

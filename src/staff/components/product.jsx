@@ -240,7 +240,7 @@ export default function Products() {
             </div>
           ) : (
             currentItems.map((product) => {
-              const imageUrl = `${import.meta.env.VITE_IMAGE_URL || 'https://localhost:7293/uploads/'}${product.productImg}`;
+              const imageUrl = `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`;
               
               return (
                 <div 
