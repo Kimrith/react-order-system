@@ -119,7 +119,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
           {order.isPaid || (order.paymentStatus && order.paymentStatus.toUpperCase() === 'PAID') ? (
             <div className="flex bg-[#2a2a35] rounded-md overflow-hidden text-xs font-bold">
               <span className="text-emerald-400 px-2 py-1 flex items-center gap-1">
-                 <Check size={12} /> PAID
+                <Check size={12} /> PAID
               </span>
               <span className="text-gray-400 px-2 py-1 bg-[#1e2336]">{order.paymentMethod || 'KHQR'}</span>
             </div>
@@ -161,7 +161,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
         const itemNotes = (order.items || []).map(i => i.specialInstructions).filter(n => n).join(', ');
         const notesToDisplay = orderNotes || itemNotes;
         if (!notesToDisplay) return null;
-        
+
         return (
           <div className="bg-[#1e2336] p-2.5 rounded-md flex items-start gap-2">
             <span className="text-gray-400 text-sm mt-0.5">📝</span>
@@ -180,7 +180,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
 
       <div className="flex items-center gap-2 mt-3 pt-4 border-t border-gray-800">
         {order.status === 'Pending' && (
-          <button 
+          <button
             onClick={() => onUpdateStatus && onUpdateStatus(order.id, 'In Kitchen')}
             className="flex-1 bg-yellow-500 hover:bg-yellow-400 text-yellow-950 font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors"
           >
@@ -188,7 +188,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
           </button>
         )}
         {order.status === 'In Kitchen' && (
-          <button 
+          <button
             onClick={() => onUpdateStatus && onUpdateStatus(order.id, 'Served')}
             className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors"
           >
@@ -201,7 +201,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
           </button>
         )}
 
-        <button 
+        <button
           onClick={(e) => {
             e.stopPropagation();
             onViewReceipt && onViewReceipt(order);
@@ -217,7 +217,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
 
 export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
   const [activeReceiptOrder, setActiveReceiptOrder] = useState(null);
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64 w-full">
@@ -235,7 +235,7 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
-      
+
       {/* Pending Column */}
       <div className="flex flex-col bg-[#1e2336] rounded-xl overflow-hidden h-full">
         <div className="flex items-center justify-between p-4 bg-[#232942] border-b border-gray-800">
@@ -247,11 +247,11 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
         </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar">
           {pendingOrders.map(order => (
-            <OrderCard 
-              key={order.id} 
-              order={order} 
-              onUpdateStatus={onUpdateStatus} 
-              onViewReceipt={setActiveReceiptOrder} 
+            <OrderCard
+              key={order.id}
+              order={order}
+              onUpdateStatus={onUpdateStatus}
+              onViewReceipt={setActiveReceiptOrder}
             />
           ))}
         </div>
@@ -268,11 +268,11 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
         </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar">
           {kitchenOrders.map(order => (
-            <OrderCard 
-              key={order.id} 
-              order={order} 
-              onUpdateStatus={onUpdateStatus} 
-              onViewReceipt={setActiveReceiptOrder} 
+            <OrderCard
+              key={order.id}
+              order={order}
+              onUpdateStatus={onUpdateStatus}
+              onViewReceipt={setActiveReceiptOrder}
             />
           ))}
         </div>
@@ -289,11 +289,11 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
         </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar">
           {servedOrders.map(order => (
-            <OrderCard 
-              key={order.id} 
-              order={order} 
-              onUpdateStatus={onUpdateStatus} 
-              onViewReceipt={setActiveReceiptOrder} 
+            <OrderCard
+              key={order.id}
+              order={order}
+              onUpdateStatus={onUpdateStatus}
+              onViewReceipt={setActiveReceiptOrder}
             />
           ))}
         </div>
@@ -301,9 +301,9 @@ export default function OrderBoard({ orders = [], isLoading, onUpdateStatus }) {
 
       <AnimatePresence>
         {activeReceiptOrder && (
-          <ReceiptModal 
-            order={activeReceiptOrder} 
-            onClose={() => setActiveReceiptOrder(null)} 
+          <ReceiptModal
+            order={activeReceiptOrder}
+            onClose={() => setActiveReceiptOrder(null)}
           />
         )}
       </AnimatePresence>

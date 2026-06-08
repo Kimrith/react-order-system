@@ -96,8 +96,8 @@ export default function StaffDashboard() {
   const totalOrders = orders.length;
   const pendingCount = orders.filter(o => o.status === 'Pending').length;
   const inKitchenCount = orders.filter(o => o.status === 'In Kitchen').length;
-  // Calculate revenue dynamically from paid orders in the list
-  const revenue = orders.filter(o => o.isPaid || o.paymentStatus === 'Paid').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  // Calculate revenue from paid orders
+  const revenue = orders.filter(o => o.paymentStatus === 'Paid').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   return (
     <div className="flex h-screen bg-[#15192b] text-white font-sans overflow-hidden">

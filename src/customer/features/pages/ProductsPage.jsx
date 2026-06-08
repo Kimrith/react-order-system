@@ -18,10 +18,18 @@ export default function Product() {
   // Fetch products
   useEffect(() => {
     getProduct()
-      .then((data) => setProducts(data))
+      .then((data) => {
+        // Sanitize data: Force discountPercentage to 0 if status is Suspended
+        const processed = data.map(p => ({
+          ...p,
+          discountPercentage: (p.discountStatusBadge || "").toLowerCase() === "suspended"
+            ? 0
+            : p.discountPercentage
+        }));
+        setProducts(processed);
+      })
       .catch((err) => console.error(err));
   }, []);
-
   // Save cart to localStorage whenever cart changes
   useEffect(() => {
     localStorage.setItem("my_order", JSON.stringify(cart));

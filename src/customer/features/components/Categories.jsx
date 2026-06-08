@@ -21,21 +21,38 @@ export default function Categories() {
   useEffect(() => {
     Promise.all([getCategories(), getProduct()])
       .then(([categoryData, productData]) => {
-        const activeCategoryIds = new Set(
-          productData.map((p) => p.categoryId.toString()),
+
+        // 1. Filter out Suspended & Expired products
+        const isInactiveDiscount = (badge) =>
+          ["suspended", "expired"].includes((badge || "").toLowerCase());
+
+        const activeProducts = productData.filter(
+          (p) => !isInactiveDiscount(p.discountStatusBadge)
         );
+
+        // 2. Identify categories using only ACTIVE products
+        const activeCategoryIds = new Set(
+          activeProducts.map((p) => p.categoryId.toString()),
+        );
+
+        // 3. Check statuses only against active products
+        const hasDiscountProducts = activeProducts.some(p => p.discountStatusBadge === "Active");
+        const hasUpcomingProducts = activeProducts.some(p => p.discountStatusBadge === "Upcoming");
 
         const formatted = categoryData.map((item) => {
           const stringId = item.id.toString();
           return {
             id: stringId,
             label: item.categoryName,
+            // hasProducts is now based on active products only
             hasProducts: activeCategoryIds.has(stringId),
           };
         });
 
         setCategories([
           { id: "all", label: "All", hasProducts: true },
+          { id: "discount", label: "Discount", hasProducts: hasDiscountProducts },
+          { id: "upcoming", label: "Upcoming", hasProducts: hasUpcomingProducts },
           ...formatted,
         ]);
       })
