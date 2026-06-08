@@ -23,39 +23,42 @@ export default function CategoriesId() {
 
     setLoading(true);
 
-    if (id === "all") {
-      getProduct()
-        .then((allProducts) => {
-          setCategory({
-            categoryName: "All Items",
-            products: allProducts,
-          });
-        })
-        .catch((err) => {
-          console.error("Error loading all products:", err);
-          setCategory(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      // Fetch the category information and all products concurrently
-      Promise.all([getCategoryById(id), getProduct()])
-        .then(([categoryDetails, allProducts]) => {
-          // Filter the products manually since the backend doesn't nest them
-          const matchedProducts = allProducts.filter(
-            (p) => String(p.categoryId) === String(id),
-          );
+    getProduct()
+      .then((allProducts) => {
+        let filtered = [];
+        let name = "Menu Section";
 
-          setCategory({
-            categoryName: categoryDetails.categoryName,
-            products: matchedProducts, // Inject filtered array here
+        // Inside CategoriesId.jsx, inside the .then() block:
+
+        if (id === "all") {
+          // Use .trim().toLowerCase() to ensure it catches "suspended", "Suspended ", etc.
+          filtered = allProducts.filter((p) => {
+            const status = p.discountStatusBadge ? p.discountStatusBadge.toString().trim().toLowerCase() : "";
+            return status !== "suspended";
           });
-        })
-        .catch((err) => {
-          console.error("Error cross-referencing category data:", err);
-          setCategory(null);
-        })
-        .finally(() => setLoading(false));
-    }
+          name = "All Items";
+        } else if (id === "discount") {
+          filtered = allProducts.filter((p) => p.discountStatusBadge === "Active");
+          name = "Active Discounts";
+        } else if (id === "upcoming") {
+          filtered = allProducts.filter((p) => p.discountStatusBadge === "Upcoming");
+          name = "Upcoming Promotions";
+        } else {
+          // Standard category filtering
+          filtered = allProducts.filter((p) => String(p.categoryId) === String(id));
+          name = filtered.length > 0 ? filtered[0].categoryName : "Category";
+        }
+
+        setCategory({
+          categoryName: name,
+          products: filtered,
+        });
+      })
+      .catch((err) => {
+        console.error("Error loading products:", err);
+        setCategory(null);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   // Sync state modifications to local storage engines
@@ -210,8 +213,8 @@ export default function CategoriesId() {
                     onClick={() => handleAdd(p)}
                     disabled={!isAvailable}
                     className={`w-10 h-10 flex items-center justify-center rounded-xl text-[#1A202E] transition-all duration-200 active:scale-95 ${isAvailable
-                        ? "bg-[#FFBB33] hover:bg-[#ffca5c] shadow-md hover:shadow-[#FFBB33]/20"
-                        : "bg-[#4A5568] opacity-40 cursor-not-allowed text-gray-400"
+                      ? "bg-[#FFBB33] hover:bg-[#ffca5c] shadow-md hover:shadow-[#FFBB33]/20"
+                      : "bg-[#4A5568] opacity-40 cursor-not-allowed text-gray-400"
                       }`}
                   >
                     <svg
