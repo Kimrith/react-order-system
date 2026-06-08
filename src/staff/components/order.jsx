@@ -116,19 +116,19 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
           <p className="text-gray-400 text-sm">{order.table || `Table ${order.tableId}`}</p>
         </div>
         <div className="flex items-center gap-2">
-          {!order.paymentStatus || order.paymentStatus.toUpperCase() === 'UNPAID' ? (
-            <div className="flex bg-[#2a2a35] rounded-md overflow-hidden text-xs font-bold">
-              <span className="text-red-400 px-2 py-1 flex items-center gap-1">
-                <span className="text-red-500">▲</span> UNPAID
-              </span>
-              <span className="text-gray-400 px-2 py-1 bg-[#1e2336]">{order.paymentMethod || 'CASH'}</span>
-            </div>
-          ) : (
+          {order.isPaid || (order.paymentStatus && order.paymentStatus.toUpperCase() === 'PAID') ? (
             <div className="flex bg-[#2a2a35] rounded-md overflow-hidden text-xs font-bold">
               <span className="text-emerald-400 px-2 py-1 flex items-center gap-1">
                 <Check size={12} /> PAID
               </span>
               <span className="text-gray-400 px-2 py-1 bg-[#1e2336]">{order.paymentMethod || 'KHQR'}</span>
+            </div>
+          ) : (
+            <div className="flex bg-[#2a2a35] rounded-md overflow-hidden text-xs font-bold">
+              <span className="text-red-400 px-2 py-1 flex items-center gap-1">
+                 <span className="text-red-500">▲</span> UNPAID
+              </span>
+              <span className="text-gray-400 px-2 py-1 bg-[#1e2336]">{order.paymentMethod || 'CASH'}</span>
             </div>
           )}
         </div>
@@ -195,8 +195,7 @@ const OrderCard = ({ order, onUpdateStatus, onViewReceipt }) => {
             <CheckCircle2 size={14} /> Finish
           </button>
         )}
-
-        {(!order.paymentStatus || order.paymentStatus.toUpperCase() === 'UNPAID') && (
+        {!(order.isPaid || (order.paymentStatus && order.paymentStatus.toUpperCase() === 'PAID')) && (
           <button className="flex-1 bg-orange-500 hover:bg-orange-400 text-orange-950 font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors">
             <span className="text-[10px] leading-none mb-[1px]">@</span> Mark Paid
           </button>
