@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { loginUser } from '../api/authService';
-import { useAuth } from '../store/AuthContext';
-import { Coffee, KeyRound, User, Loader2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { registerUser } from '../api/authService';
+import { Coffee, User, KeyRound, Mail, Type, Loader2 } from 'lucide-react';
 
-export default function Login() {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+export default function Register() {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    fullName: '',
+    password: '',
+  });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,30 +22,17 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
-      const data = await loginUser(formData);
-      if (data.token) {
-        login(data.token);
-
-        // Use user roles from response to redirect if possible
-        const userRoles = data.roles || [];
-        const from = location.state?.from?.pathname;
-
-        if (from) {
-          navigate(from, { replace: true });
-        } else if (userRoles.includes('Admin')) {
-          navigate('/admin', { replace: true });
-        } else if (userRoles.includes('Staff')) {
-          navigate('/staff', { replace: true });
-        } else {
-          // Standard users go back to home page
-          navigate('/', { replace: true });
-        }
-      }
+      await registerUser(formData);
+      setSuccess('Registration successful! You can now log in.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
-      setError(err.message || 'Failed to login');
+      setError(err.message || 'Failed to register');
     } finally {
       setLoading(false);
     }
@@ -55,7 +45,7 @@ export default function Login() {
           <Coffee size={48} />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
+          Create a new account
         </h2>
       </div>
 
@@ -67,6 +57,30 @@ export default function Login() {
                 {error}
               </div>
             )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+                {success}
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Full Name</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Type className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  name="fullName"
+                  type="text"
+                  required
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Username</label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -80,7 +94,25 @@ export default function Login() {
                   value={formData.username}
                   onChange={handleChange}
                   className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
-                  placeholder="Enter your username"
+                  placeholder="johndoe"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email address</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="focus:ring-orange-500 focus:border-orange-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
+                  placeholder="john@example.com"
                 />
               </div>
             </div>
@@ -109,7 +141,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:bg-orange-400"
               >
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Register'}
               </button>
             </div>
           </form>
@@ -120,11 +152,15 @@ export default function Login() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or</span>
+                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
               </div>
             </div>
-
-
+            
+            <div className="mt-6 text-center">
+              <Link to="/login" className="font-medium text-orange-600 hover:text-orange-500">
+                Sign in instead
+              </Link>
+            </div>
           </div>
         </div>
       </div>

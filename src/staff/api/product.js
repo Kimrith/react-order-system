@@ -1,7 +1,8 @@
+import { fetchWithAuth } from '../../auth/api/fetchWithAuth';
 const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7293/api';
 
 export const getProducts = async () => {
-  const res = await fetch(`${API_URL}/Product`);
+  const res = await fetchWithAuth(`${API_URL}/Product`);
   if (!res.ok) throw new Error("Failed to fetch products");
   return res.json();
 };
@@ -15,7 +16,7 @@ export const createProduct = async (productData) => {
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(`${API_URL}/Product`, {
+  const res = await fetchWithAuth(`${API_URL}/Product`, {
     method: "POST",
     headers,
     body: isFormData ? productData : JSON.stringify(productData),
@@ -25,7 +26,7 @@ export const createProduct = async (productData) => {
 };
 
 export const updateProduct = async (id, productData) => {
-  const res = await fetch(`${API_URL}/Product/${id}`, {
+  const res = await fetchWithAuth(`${API_URL}/Product/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -40,7 +41,7 @@ export const updateProduct = async (id, productData) => {
 };
 
 export const deleteProduct = async (id) => {
-  const res = await fetch(`${API_URL}/Product/${id}`, {
+  const res = await fetchWithAuth(`${API_URL}/Product/${id}`, {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to delete product");
@@ -51,13 +52,13 @@ export const deleteProduct = async (id) => {
 };
 
 export const getTopProducts = async () => {
-  const res = await fetch(`${API_URL}/Product/top`);
+  const res = await fetchWithAuth(`${API_URL}/Product/top`);
   if (!res.ok) throw new Error("Failed to fetch top products");
   return res.json();
 };
 
 export const updateProductAvailability = async (id, isAvailable) => {
-  const res = await fetch(`${API_URL}/Product/${id}/availability`, {
+  const res = await fetchWithAuth(`${API_URL}/Product/${id}/availability`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

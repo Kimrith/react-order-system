@@ -1,8 +1,9 @@
+import { fetchWithAuth } from '../../auth/api/fetchWithAuth';
 const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7293/api';
 
 export const fetchOrders = async () => {
   try {
-    const response = await fetch(`${API_URL}/Orders`);
+    const response = await fetchWithAuth(`${API_URL}/Orders`);
     if (!response.ok) throw new Error('Failed to fetch orders');
     const data = await response.json();
     return data; // Return full response which contains totalAllAmount, totalCount, and orders
@@ -15,7 +16,7 @@ export const fetchOrders = async () => {
 export const updateOrderStatus = async (id, status, fullOrder = null) => {
   try {
     // The backend uses PUT instead of PATCH, and the route is /api/Orders/{id}
-    const response = await fetch(`${API_URL}/Orders/${id}`, {
+    const response = await fetchWithAuth(`${API_URL}/Orders/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ export const fetchOrderHistory = async (from = null, to = null) => {
     if (to) params.append('to', to);
     if (params.toString()) url += `?${params.toString()}`;
 
-    const response = await fetch(url);
+    const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error('Failed to fetch order history');
     return await response.json(); // expected to return { totalAllAmount, totalCount, orders } or similar depending on the exact backend shape. We'll handle both cases in the component.
   } catch (error) {

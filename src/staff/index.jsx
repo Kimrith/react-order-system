@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import { HubConnectionBuilder } from '@microsoft/signalr';
 import Navbar from './layout/navbar';
 import OrderBoard from './components/order';
 import CreateOrder from './components/createOrder';
@@ -8,8 +8,8 @@ import History from './components/history';
 import { ChevronDown, Plus } from 'lucide-react';
 import { fetchOrders, updateOrderStatus } from './api/orders';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL.replace('/api', '') 
+const SOCKET_URL = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace('/api', '')
   : 'https://localhost:7293';
 
 export default function StaffDashboard() {
@@ -41,30 +41,40 @@ export default function StaffDashboard() {
 
     loadOrders();
 
-    // 2. Setup Socket.io listener
-    const socket = io(SOCKET_URL, {
-      transports: ['websocket'],
-      // Assuming CORS is enabled on the backend
+    // 2. Setup SignalR listener
+    const connection = new HubConnectionBuilder()
+      .withUrl('https://localhost:7293/orderHub', {
+        withCredentials: true,
+        accessTokenFactory: () => localStorage.getItem('auth_token')
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on('ReceiveNewOrder', (order) => {
+      console.log('New order received via SignalR:', order);
+      setOrders((prev) => {
+        // Prevent duplicate orders just in case
+        if (prev.some(o => o.id === order.id)) return prev;
+        // Ensure new orders have a status so they render in the Pending column
+        const newOrder = { ...order, status: order.status || 'Pending' };
+        return [...prev, newOrder];
+      });
     });
 
-    socket.on('connect', () => {
-      console.log('Connected to WebSocket server via Socket.io');
-    });
-
-    socket.on('newOrder', (order) => {
-      console.log('New order received:', order);
-      setOrders((prev) => [...prev, order]);
-    });
-
-    socket.on('orderStatusUpdated', (updatedOrder) => {
+    // Keeping status update hook in case it is migrated to SignalR as well
+    connection.on('orderStatusUpdated', (updatedOrder) => {
       console.log('Order status updated:', updatedOrder);
-      setOrders((prev) => 
+      setOrders((prev) =>
         prev.map(o => o.id === updatedOrder.id ? updatedOrder : o)
       );
     });
 
+    connection.start()
+      .then(() => console.log('Connected to SignalR orderHub'))
+      .catch(err => console.error('SignalR Connection Error: ', err));
+
     return () => {
-      socket.disconnect();
+      connection.stop();
     };
   }, []);
 
@@ -72,7 +82,7 @@ export default function StaffDashboard() {
     try {
       // Optimistic UI update
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
-      
+
       await updateOrderStatus(id, newStatus);
     } catch (err) {
       console.error('Failed to update status', err);
@@ -92,7 +102,7 @@ export default function StaffDashboard() {
   return (
     <div className="flex h-screen bg-[#15192b] text-white font-sans overflow-hidden">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
+
       <main className="flex-1 flex flex-col p-8 overflow-hidden h-full">
         {/* Only show Dashboard Header and Stats on Orders tab */}
         {activeTab === 'Orders' && (
@@ -109,7 +119,7 @@ export default function StaffDashboard() {
                 <button className="flex items-center gap-2 bg-[#1e2336] text-gray-300 px-4 py-2.5 rounded-lg text-base border border-gray-800 hover:bg-[#232942] transition-colors">
                   All Orders <ChevronDown size={18} />
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab('Create Order')}
                   className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-orange-950 px-4 py-2.5 rounded-lg font-bold text-base transition-colors"
                 >
@@ -143,10 +153,10 @@ export default function StaffDashboard() {
         {/* Board Container */}
         <div className="flex-1 min-h-0">
           {activeTab === 'Orders' ? (
-            <OrderBoard 
-              orders={orders} 
-              isLoading={isLoading} 
-              onUpdateStatus={handleUpdateStatus} 
+            <OrderBoard
+              orders={orders}
+              isLoading={isLoading}
+              onUpdateStatus={handleUpdateStatus}
             />
           ) : activeTab === 'Create Order' ? (
             <CreateOrder />

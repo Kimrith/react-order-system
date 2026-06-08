@@ -1,3 +1,4 @@
+import { fetchWithAuth } from '../../../auth/api/fetchWithAuth';
 // src/admin/features/productApi.js
 // Centralized API helper for product management.
 // Uses Vite's environment variable for base URL (VITE_API_BASE_URL).
@@ -13,21 +14,21 @@ export const fetchProducts = async (categoryId = null, searchTerm = '', discount
     const queryString = params.toString();
     const url = `${BASE_URL}/Product${queryString ? `?${queryString}` : ''}`;
 
-    const res = await fetch(url);
+    const res = await fetchWithAuth(url);
     if (!res.ok) throw new Error('Failed to fetch products');
     return await res.json();
 };
 
 /** Get a single product by ID */
 export const getProduct = async (id) => {
-    const res = await fetch(`${BASE_URL}/product/${id}`);
+    const res = await fetchWithAuth(`${BASE_URL}/product/${id}`);
     if (!res.ok) throw new Error('Failed to fetch product');
     return await res.json();
 };
 
 /** Create a new product */
 export const createProduct = async (formData) => {
-    const res = await fetch(`${BASE_URL}/product`, {
+    const res = await fetchWithAuth(`${BASE_URL}/product`, {
         method: 'POST',
         body: formData,
     });
@@ -37,7 +38,7 @@ export const createProduct = async (formData) => {
 
 /** Update an existing product (PUT) */
 export const updateProduct = async (id, formData) => {
-    const res = await fetch(`${BASE_URL}/product/${id}`, {
+    const res = await fetchWithAuth(`${BASE_URL}/product/${id}`, {
         method: 'PUT',
         body: formData,
     });
@@ -47,7 +48,7 @@ export const updateProduct = async (id, formData) => {
 
 /** Toggle product availability (PATCH) */
 export const setProductAvailability = async (id, isAvailable) => {
-    const res = await fetch(`${BASE_URL}/product/${id}/availability`, {
+    const res = await fetchWithAuth(`${BASE_URL}/product/${id}/availability`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isAvailable }),
@@ -59,7 +60,7 @@ export const setProductAvailability = async (id, isAvailable) => {
 
 /** Delete a product */
 export const deleteProduct = async (id) => {
-    const res = await fetch(`${BASE_URL}/product/${id}`, {
+    const res = await fetchWithAuth(`${BASE_URL}/product/${id}`, {
         method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete product');
@@ -69,14 +70,14 @@ export const deleteProduct = async (id) => {
 
 /** Fetch top products by quantity or revenue */
 export const fetchTopProducts = async (limit = 5, sortBy = 'qty') => {
-    const res = await fetch(`${BASE_URL}/Product/top?limit=${limit}&sortBy=${sortBy}`);
+    const res = await fetchWithAuth(`${BASE_URL}/Product/top?limit=${limit}&sortBy=${sortBy}`);
     if (!res.ok) throw new Error('Failed to fetch top products');
     return await res.json();
 };
 
 /** Apply discount to a product */
 export const applyDiscount = async (id, discountData) => {
-    const res = await fetch(`${BASE_URL}/product/${id}/apply-discount`, {
+    const res = await fetchWithAuth(`${BASE_URL}/product/${id}/apply-discount`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(discountData),
@@ -88,7 +89,7 @@ export const applyDiscount = async (id, discountData) => {
 
 /** Toggle discount status */
 export const toggleDiscountStatus = async (id, isDiscountOverrideActive) => {
-    const res = await fetch(`${BASE_URL}/Product/${id}/discount-toggle`, {
+    const res = await fetchWithAuth(`${BASE_URL}/Product/${id}/discount-toggle`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isDiscountOverrideActive }),
