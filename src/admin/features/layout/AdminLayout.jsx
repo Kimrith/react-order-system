@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
@@ -6,10 +6,20 @@ import {
   TableProperties,
   History,
   Percent,
+  Users,
   LogOut
 } from 'lucide-react';
+import { useAuth } from '../../../auth/store/AuthContext';
 
 const AdminLayout = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   const menuItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={22} /> },
     { name: 'Products', path: '/admin/products', icon: <Package size={22} /> },
@@ -17,7 +27,7 @@ const AdminLayout = () => {
     { name: 'Categories', path: '/admin/categories', icon: <Layers size={22} /> },
     { name: 'History', path: '/admin/history', icon: <History size={22} /> },
     { name: 'Table Managements', path: '/admin/tables', icon: <TableProperties size={22} /> },
-
+    { name: 'User Management', path: '/admin/users', icon: <Users size={22} /> },
   ];
 
   return (
@@ -57,7 +67,10 @@ const AdminLayout = () => {
 
         {/* Logout Button */}
         <div className="px-4">
-          <button className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-all duration-200 shadow-lg active:scale-95">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-all duration-200 shadow-lg active:scale-95"
+          >
             <LogOut size={18} />
             Logout
           </button>

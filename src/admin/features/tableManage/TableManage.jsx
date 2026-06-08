@@ -1,3 +1,4 @@
+import { fetchWithAuth } from '../../../auth/api/fetchWithAuth';
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -33,7 +34,7 @@ export default function TableManage() {
   const fetchTables = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}/TableQr`);
+      const res = await fetchWithAuth(`${import.meta.env.VITE_API_URL}/TableQr`);
       if (res.ok) {
         const data = await res.json();
         setTables(data);
@@ -65,7 +66,7 @@ export default function TableManage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/TableQr/generate/${encodeURIComponent(trimmed)}`);
+      const res = await fetchWithAuth(`${import.meta.env.VITE_API_URL}/TableQr/generate/${encodeURIComponent(trimmed)}`);
       if (res.ok) {
         const newTable = await res.json();
         setTables(prev => [newTable, ...prev]);
@@ -181,7 +182,7 @@ export default function TableManage() {
     if (!tableToDelete) return;
 
     try {
-      const res = await fetch(`${API_URL}/TableQr/${encodeURIComponent(deletingTableId)}`, {
+      const res = await fetchWithAuth(`${import.meta.env.VITE_API_URL}/TableQr/${encodeURIComponent(deletingTableId)}`, {
         method: 'DELETE'
       });
       if (res.ok) {

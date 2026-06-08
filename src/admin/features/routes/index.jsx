@@ -6,6 +6,7 @@ import TableManagement from '../tableManage/TableManage';
 import Category from '../categories/category';
 import OrderHistory from '../orderHistory/OrderHistory';
 import DiscountManage from '../discounts/DiscountManage';
+import UserManage from '../users/UserManage';
 
 const AdminRoutes = () => {
   return (
@@ -18,6 +19,7 @@ const AdminRoutes = () => {
         <Route path="tables" element={<TableManagement />} />
         <Route path="history" element={<OrderHistory />} />
         <Route path="discounts" element={<DiscountManage />} />
+        <Route path="users" element={<UserManage />} />
       </Route>
     </Routes>
   );

@@ -1,6 +1,16 @@
 import { ShoppingBag, FilePlus, Package, LayoutGrid, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/store/AuthContext';
 
 export default function Navbar({ activeTab = 'Orders', setActiveTab }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   const menuItems = [
     { name: 'Orders', icon: ShoppingBag },
     { name: 'Create Order', icon: FilePlus },
@@ -40,7 +50,10 @@ export default function Navbar({ activeTab = 'Orders', setActiveTab }) {
         </nav>
       </div>
 
-      <button className="flex items-center justify-center gap-2 w-full bg-white text-gray-900 font-semibold py-3 rounded-xl hover:bg-gray-100 transition-colors mt-auto text-base">
+      <button 
+        onClick={handleLogout}
+        className="flex items-center justify-center gap-2 w-full bg-white text-gray-900 font-semibold py-3 rounded-xl hover:bg-gray-100 transition-colors mt-auto text-base"
+      >
         <LogOut size={20} />
         Logout
       </button>

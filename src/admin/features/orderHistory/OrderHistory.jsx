@@ -1,3 +1,4 @@
+import { fetchWithAuth } from '../../../auth/api/fetchWithAuth';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -44,7 +45,7 @@ export default function OrderHistory() {
       if (searchTermVal.trim()) {
         params.set('SearchTerm', searchTermVal.trim());
       }
-      const res = await fetch(`${BASE_URL}/Orders/admin/history?${params.toString()}`);
+      const res = await fetchWithAuth(`${BASE_URL}/Orders/admin/history?${params.toString()}`);
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       setOrders(data);
@@ -375,12 +376,12 @@ export default function OrderHistory() {
                         {/* Order Status Badge */}
                         <div>
                           <span className={`inline-flex px-3 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${order.status === 'Completed'
-                              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/40'
-                              : order.status === 'Accepted'
-                                ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40'
-                                : order.status === 'Pending'
-                                  ? 'bg-amber-950/40 text-amber-400 border border-amber-900/40'
-                                  : 'bg-gray-800/50 text-gray-400 border border-gray-700/30'
+                            ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/40'
+                            : order.status === 'Accepted'
+                              ? 'bg-blue-950/40 text-blue-400 border border-blue-900/40'
+                              : order.status === 'Pending'
+                                ? 'bg-amber-950/40 text-amber-400 border border-amber-900/40'
+                                : 'bg-gray-800/50 text-gray-400 border border-gray-700/30'
                             }`}>
                             {order.status}
                           </span>
@@ -486,8 +487,8 @@ export default function OrderHistory() {
                       <div className="space-y-2">
                         <span className="text-[11px] font-bold text-gray-500 uppercase block">Payment</span>
                         <div className={`w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold ${selectedOrder.paymentStatus === 'Paid'
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                          ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                          : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
                           }`}>
                           {selectedOrder.paymentStatus === 'Paid' ? <Check size={14} /> : <AlertTriangle size={14} />}
                           {selectedOrder.paymentStatus}
@@ -498,12 +499,12 @@ export default function OrderHistory() {
                       <div className="space-y-2">
                         <span className="text-[11px] font-bold text-gray-500 uppercase block">Order State</span>
                         <div className={`w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold ${selectedOrder.status === 'Completed'
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : selectedOrder.status === 'Accepted'
-                              ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
-                              : selectedOrder.status === 'Pending'
-                                ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
-                                : 'bg-gray-800/50 border border-gray-700/30 text-gray-400'
+                          ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                          : selectedOrder.status === 'Accepted'
+                            ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
+                            : selectedOrder.status === 'Pending'
+                              ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                              : 'bg-gray-800/50 border border-gray-700/30 text-gray-400'
                           }`}>
                           {selectedOrder.status}
                         </div>
