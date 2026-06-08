@@ -127,8 +127,11 @@ export default function CategoriesId() {
               price,
               isAvailable,
               productImg,
-              discountPercentage,
+              discountStatusBadge,
             } = p;
+
+            const isDiscountActive = discountStatusBadge === 'Active';
+            const discountPercentage = isDiscountActive ? (p.discountPercentage || 0) : 0;
 
             return (
               <div
