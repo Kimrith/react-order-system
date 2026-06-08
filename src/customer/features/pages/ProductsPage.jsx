@@ -99,8 +99,11 @@ export default function Product() {
       price,
       isAvailable,
       productImg,
-      discountPercentage,
+      discountStatusBadge,
     } = product;
+
+    const isDiscountActive = discountStatusBadge === 'Active';
+    const discountPercentage = isDiscountActive ? (product.discountPercentage || 0) : 0;
 
     return (
       <div className="group bg-[#2D3748] rounded-2xl p-4 border border-[#4A5568] flex flex-col transition-all hover:shadow-2xl hover:border-[#FFBB33]/50 hover:-translate-y-1 relative">

@@ -358,7 +358,8 @@ export default function CreateOrder() {
               const qty = cart[product.id] || 0;
               const isAvailable = product.isAvailable !== false; // Default to true if undefined
               const imageUrl = `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`;
-              const discountPercentage = product.discountPercentage || 0;
+              const isDiscountActive = product.discountStatusBadge === 'Active';
+              const discountPercentage = isDiscountActive ? (product.discountPercentage || 0) : 0;
 
               return (
                 <div
