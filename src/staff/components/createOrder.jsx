@@ -126,7 +126,9 @@ export default function CreateOrder() {
   const cartItemsCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
   const cartTotal = Object.entries(cart).reduce((sum, [id, qty]) => {
     const product = products.find((p) => String(p.id) === String(id));
-    return sum + (product?.price || 0) * qty;
+    const discountPercentage = product?.discountPercentage || 0;
+    const finalPrice = product ? product.price * (1 - discountPercentage / 100) : 0;
+    return sum + finalPrice * qty;
   }, 0);
 
   // Filter products based on search and category
@@ -175,7 +177,16 @@ export default function CreateOrder() {
                     />
                     <div>
                       <h3 className="text-white font-bold text-sm mb-1">{product.name}</h3>
-                      <p className="text-gray-500 text-[11px]">${product.price?.toFixed(2)} each</p>
+                      <div className="flex items-center gap-1.5">
+                        {product.discountPercentage > 0 ? (
+                          <>
+                            <p className="text-gray-500 line-through text-[10px]">${product.price?.toFixed(2)}</p>
+                            <p className="text-yellow-500 text-[11px] font-bold">${(product.price * (1 - product.discountPercentage / 100)).toFixed(2)} each</p>
+                          </>
+                        ) : (
+                          <p className="text-gray-500 text-[11px]">${product.price?.toFixed(2)} each</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-8">
@@ -195,7 +206,7 @@ export default function CreateOrder() {
                       </button>
                     </div>
                     <span className="text-yellow-500 font-bold text-base w-16 text-right">
-                      ${(product.price * qty).toFixed(2)}
+                      ${(product.price * (1 - (product.discountPercentage || 0) / 100) * qty).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -347,6 +358,7 @@ export default function CreateOrder() {
               const qty = cart[product.id] || 0;
               const isAvailable = product.isAvailable !== false; // Default to true if undefined
               const imageUrl = `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`;
+              const discountPercentage = product.discountPercentage || 0;
 
               return (
                 <div
@@ -369,6 +381,11 @@ export default function CreateOrder() {
                         Sold Out
                       </div>
                     )}
+                    {discountPercentage > 0 && isAvailable && (
+                      <div className="absolute top-2 left-2 bg-red-500/90 text-white font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded shadow-lg z-10">
+                        -{discountPercentage}%
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
@@ -379,7 +396,14 @@ export default function CreateOrder() {
                     </p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <span className="text-yellow-500 font-black text-base">${product.price?.toFixed(2)}</span>
+                      {discountPercentage > 0 ? (
+                        <div className="flex flex-col">
+                          <span className="text-gray-500 font-medium text-xs line-through leading-none mb-0.5">${product.price?.toFixed(2)}</span>
+                          <span className="text-yellow-500 font-black text-base leading-none">${(product.price * (1 - discountPercentage / 100)).toFixed(2)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-yellow-500 font-black text-base">${product.price?.toFixed(2)}</span>
+                      )}
 
                       {isAvailable ? (
                         qty > 0 ? (

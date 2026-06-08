@@ -22,10 +22,13 @@ export default function Order() {
       const items = Object.values(cartObj);
 
       const count = items.reduce((t, i) => t + (i.quantity || 0), 0);
-      const price = items.reduce(
-        (t, i) => t + (i.price || 0) * (i.quantity || 0),
-        0,
-      );
+      const price = items.reduce((t, i) => {
+        const itemPrice = i.price || 0;
+        const qty = i.quantity || 0;
+        const pct = i.discountPercentage || 0;
+        const discountedPrice = itemPrice * (1 - pct / 100);
+        return t + discountedPrice * qty;
+      }, 0);
 
       setTotalCountProduct(count);
       setTotalPrice(price);

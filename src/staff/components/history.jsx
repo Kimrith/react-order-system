@@ -21,17 +21,21 @@ export default function History() {
       
       const now = new Date();
       if (dateFilter === 'today') {
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        // Business day starts at 4 AM to handle shifts past midnight
+        let startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 0, 0);
+        if (now.getHours() < 4) {
+          startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 4, 0, 0);
+        }
         from = startOfDay.toISOString();
         to = now.toISOString();
       } else if (dateFilter === 'week') {
         const startOfWeek = new Date(now);
         startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
+        startOfWeek.setHours(4, 0, 0, 0);
         from = startOfWeek.toISOString();
         to = now.toISOString();
       } else if (dateFilter === 'month') {
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 4, 0, 0);
         from = startOfMonth.toISOString();
         to = now.toISOString();
       }
@@ -50,7 +54,7 @@ export default function History() {
         } else if (Array.isArray(response)) {
           fetchedOrders = response;
           fetchedCount = fetchedOrders.length;
-          fetchedRevenue = fetchedOrders.filter(o => o.isPaid).reduce((sum, o) => sum + o.totalAmount, 0);
+          fetchedRevenue = fetchedOrders.filter(o => o.isPaid || o.paymentStatus === 'Paid').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
         }
         
         // Sort orders by id descending (newest first)
@@ -78,7 +82,8 @@ export default function History() {
 
   // Filtering based on search (ID or Table)
   const filteredOrders = orders.filter(order => {
-    const orderIdMatch = `ORD-${String(order.id).padStart(3, '0')}`.toLowerCase().includes(searchQuery.toLowerCase());
+    const orderIdString = order.orderId || `ORD-${String(order.id).padStart(3, '0')}`;
+    const orderIdMatch = orderIdString.toLowerCase().includes(searchQuery.toLowerCase());
     const tableMatch = `TABLE ${order.tableId || '?'}`.toLowerCase().includes(searchQuery.toLowerCase());
     return orderIdMatch || tableMatch;
   });
@@ -90,6 +95,20 @@ export default function History() {
       case 'Completed': return 'COMPLETED';
       default: return status?.toUpperCase() || 'UNKNOWN';
     }
+  };
+
+  const formatOrderDate = (dateString) => {
+    if (!dateString) return 'Invalid Date';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    }) + ', ' + date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   return (
@@ -149,9 +168,8 @@ export default function History() {
 
       {/* Table */}
       <div className="flex-1 overflow-hidden bg-[#1e2336] rounded-2xl flex flex-col border border-[#2a2a35]/50">
-        <div className="grid grid-cols-[1.5fr_2fr_1.5fr_1fr_1fr] px-6 py-4 border-b border-[#2a2a35] shrink-0 items-center">
+        <div className="grid grid-cols-[2fr_1.5fr_1fr_1fr] px-6 py-4 border-b border-[#2a2a35] shrink-0 items-center">
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Order Info</div>
-          <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Items</div>
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Status</div>
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Total</div>
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase text-right">Actions</div>
@@ -168,40 +186,23 @@ export default function History() {
             </div>
           ) : (
             filteredOrders.map(order => {
-              const orderIdString = `ORD-${String(order.id).padStart(3, '0')}`;
-              const orderTime = new Date(order.orderDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-              const paymentMethodText = order.paymentMethod === 'Cash' ? 'via CASH' : 'via KHQR';
+              const orderIdString = order.orderId || `ORD-${String(order.id).padStart(3, '0')}`;
+              const orderTime = formatOrderDate(order.createdAt || order.orderDate);
 
               return (
-                <div key={order.id} className="grid grid-cols-[1.5fr_2fr_1.5fr_1fr_1fr] px-6 py-5 border-b border-[#2a2a35] hover:bg-[#232942] transition-colors group items-start">
+                <div key={order.id} className="grid grid-cols-[2fr_1.5fr_1fr_1fr] px-6 py-5 border-b border-[#2a2a35] hover:bg-[#232942] transition-colors group items-center">
                   {/* Order Info */}
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1.5 items-start">
                     <span className="font-bold text-white text-sm">{orderIdString}</span>
                     <span className="text-gray-400 text-xs">{orderTime}</span>
-                    <span className="bg-[#15192b] border border-[#2a2a35] text-gray-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase w-max mt-1 tracking-wide">
+                    <span className="bg-[#15192b] border border-[#2a2a35] text-blue-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase w-max mt-1 tracking-wide">
                       TABLE {order.tableId}
                     </span>
                   </div>
 
-                  {/* Items */}
-                  <div className="flex flex-col gap-1">
-                    {order.items && order.items.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 text-sm">
-                        <span className="text-gray-500 font-bold">{item.quantity}x</span>
-                        <span className="text-gray-300">{item.product?.name || 'Unknown Item'}</span>
-                      </div>
-                    ))}
-                    {order.specialInstruction && (
-                      <div className="flex items-start gap-1.5 mt-2">
-                        <StickyNote size={12} className="text-gray-500 mt-0.5" />
-                        <span className="text-gray-400 text-xs italic">{order.specialInstruction}</span>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Status */}
                   <div className="flex flex-col gap-2 items-start">
-                    {order.isPaid ? (
+                    {order.isPaid || order.paymentStatus === 'Paid' ? (
                       <div className="flex items-center gap-1.5 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-[10px] font-bold border border-green-500/20">
                         <Check size={12} strokeWidth={3} />
                         PAID
@@ -220,7 +221,6 @@ export default function History() {
                   {/* Total */}
                   <div className="flex flex-col gap-1">
                     <span className="font-bold text-white text-sm">${order.totalAmount?.toFixed(2)}</span>
-                    <span className="text-gray-500 text-xs">{paymentMethodText}</span>
                   </div>
 
                   {/* Actions */}
