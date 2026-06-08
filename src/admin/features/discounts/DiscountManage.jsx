@@ -508,7 +508,7 @@ export default function DiscountManage() {
                           <div className="flex items-center gap-4">
                             <div className={`w-11 h-11 rounded-xl ${product.iconBg || 'bg-slate-500/10 text-slate-400'} flex items-center justify-center text-2xl shadow-inner overflow-hidden`}>
                               {product.productImg ? (
-                                <img src={`${import.meta.env.VITE_IMAGE_URL + product.productImg}`} alt={product.name} className="w-full h-full object-cover" />
+                                <img src={`${(import.meta.env.VITE_IMAGE_URL || "") + product.productImg}`} alt={product.name} className="w-full h-full object-cover" />
                               ) : (
                                 product.icon || '🍽️'
                               )}

@@ -1,7 +1,7 @@
 import { fetchWithAuth } from '../../../auth/api/fetchWithAuth';
 // src/admin/features/categoryApi.js
 
-const BASE_URL = import.meta.env.VITE_API_URL || "https://localhost:7293";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export const fetchCategories = async () => {
     const res = await fetchWithAuth(`${BASE_URL}/Categories`);

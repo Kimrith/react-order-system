@@ -43,7 +43,7 @@ export default function Product() {
           price: product.price,
           discountPercentage: product.discountPercentage,
           description: product.description,
-          image: `${import.meta.env.VITE_IMAGE_URL}${product.productImg}`,
+          image: `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`,
         },
       };
     });
@@ -99,7 +99,7 @@ export default function Product() {
         {/* Image Container */}
         <div className="relative aspect-square mb-4 rounded-xl bg-[#1A202E]/50 overflow-hidden flex items-center justify-center p-4">
           <img
-            src={`${import.meta.env.VITE_IMAGE_URL}${productImg}`}
+            src={`${import.meta.env.VITE_IMAGE_URL || ""}${productImg}`}
             alt={name}
             className={`w-full h-full scale-150 object-contain transition-transform duration-300 ${isAvailable && "group-hover:scale-110"}`}
           />

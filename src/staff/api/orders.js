@@ -33,7 +33,7 @@ export const updateOrderStatus = async (id, status, fullOrder = null) => {
 
     // PUT often returns 204 No Content
     if (response.status === 204) return { id, status };
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error updating order status:', error);

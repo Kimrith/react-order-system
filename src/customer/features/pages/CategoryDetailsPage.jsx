@@ -80,7 +80,7 @@ export default function CategoriesId() {
           price: product.price,
           discountPercentage: product.discountPercentage,
           description: product.description,
-          image: `${import.meta.env.VITE_IMAGE_URL}${product.productImg}`,
+          image: `${import.meta.env.VITE_IMAGE_URL || ""}${product.productImg}`,
         },
       };
     });
@@ -137,7 +137,7 @@ export default function CategoriesId() {
                   <img
                     src={
                       productImg
-                        ? `${import.meta.env.VITE_IMAGE_URL.replace(/\/$/, "")}/${productImg.replace(/^\//, "")}`
+                        ? `${(import.meta.env.VITE_IMAGE_URL || "").replace(/\/$/, "")}/${productImg.replace(/^\//, "")}`
                         : "https://placehold.co/300x300/2d3748/ffffff?text=No+Image"
                     }
                     alt={name}
