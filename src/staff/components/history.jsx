@@ -168,8 +168,9 @@ export default function History() {
 
       {/* Table */}
       <div className="flex-1 overflow-hidden bg-[#1e2336] rounded-2xl flex flex-col border border-[#2a2a35]/50">
-        <div className="grid grid-cols-[2fr_1.5fr_1fr_1fr] px-6 py-4 border-b border-[#2a2a35] shrink-0 items-center">
+        <div className="grid grid-cols-[1.5fr_2fr_1.5fr_1fr_1fr] px-6 py-4 border-b border-[#2a2a35] shrink-0 items-center">
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Order Info</div>
+          <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Items</div>
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Status</div>
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase">Total</div>
           <div className="text-gray-500 font-bold text-[10px] tracking-wider uppercase text-right">Actions</div>
@@ -190,7 +191,7 @@ export default function History() {
               const orderTime = formatOrderDate(order.createdAt || order.orderDate);
 
               return (
-                <div key={order.id} className="grid grid-cols-[2fr_1.5fr_1fr_1fr] px-6 py-5 border-b border-[#2a2a35] hover:bg-[#232942] transition-colors group items-center">
+                <div key={order.id} className="grid grid-cols-[1.5fr_2fr_1.5fr_1fr_1fr] px-6 py-5 border-b border-[#2a2a35] hover:bg-[#232942] transition-colors group items-center">
                   {/* Order Info */}
                   <div className="flex flex-col gap-1.5 items-start">
                     <span className="font-bold text-white text-sm">{orderIdString}</span>
@@ -198,6 +199,23 @@ export default function History() {
                     <span className="bg-[#15192b] border border-[#2a2a35] text-blue-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase w-max mt-1 tracking-wide">
                       TABLE {order.tableId}
                     </span>
+                  </div>
+
+                  {/* Items */}
+                  <div className="flex flex-col gap-1 items-start text-sm pr-4">
+                    {(order.items || []).map((item, idx) => {
+                      const itemName = item.product?.name || item.name || 'Item';
+                      const itemQty = item.quantity || item.qty || 1;
+                      return (
+                        <div key={idx} className="flex justify-between items-center w-full gap-2">
+                          <span className="text-gray-300 truncate">{itemName}</span>
+                          <span className="text-gray-500 text-xs shrink-0">x{itemQty}</span>
+                        </div>
+                      );
+                    })}
+                    {(!order.items || order.items.length === 0) && (
+                      <span className="text-gray-600 italic text-xs">No items</span>
+                    )}
                   </div>
 
                   {/* Status */}

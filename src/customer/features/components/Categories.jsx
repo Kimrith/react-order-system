@@ -22,22 +22,20 @@ export default function Categories() {
     Promise.all([getCategories(), getProduct()])
       .then(([categoryData, productData]) => {
 
-        // 1. Filter out Suspended & Expired products
-        const isInactiveDiscount = (badge) =>
-          ["suspended", "expired"].includes((badge || "").toLowerCase());
+        // 1. Filter out Suspended products (expired discounts still mean the product is available at regular price)
+        const activeProducts = productData.filter((p) => {
+          const badge = (p.discountStatusBadge || "").trim().toLowerCase();
+          return badge !== "suspended";
+        });
 
-        const activeProducts = productData.filter(
-          (p) => !isInactiveDiscount(p.discountStatusBadge)
-        );
-
-        // 2. Identify categories using only ACTIVE products
+        // 2. Identify categories using active products
         const activeCategoryIds = new Set(
           activeProducts.map((p) => p.categoryId.toString()),
         );
 
-        // 3. Check statuses only against active products
-        const hasDiscountProducts = activeProducts.some(p => p.discountStatusBadge === "Active");
-        const hasUpcomingProducts = activeProducts.some(p => p.discountStatusBadge === "Upcoming");
+        // 3. Check statuses for the special tabs
+        const hasDiscountProducts = productData.some(p => p.discountStatusBadge === "Active");
+        const hasUpcomingProducts = productData.some(p => p.discountStatusBadge === "Upcoming");
 
         const formatted = categoryData.map((item) => {
           const stringId = item.id.toString();

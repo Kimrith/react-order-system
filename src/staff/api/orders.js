@@ -15,16 +15,22 @@ export const fetchOrders = async () => {
 
 export const updateOrderStatus = async (id, status, fullOrder = null) => {
   try {
+    const payload = fullOrder ? {
+      ...fullOrder,
+      status: status,
+      items: fullOrder.items?.map(item => ({
+        ...item,
+        product: null
+      }))
+    } : { id, status };
+
     // The backend uses PUT instead of PATCH, and the route is /api/Orders/{id}
     const response = await fetchWithAuth(`${API_URL}/Orders/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      // We only send id and status. The backend's PUT endpoint seems to act as a partial update,
-      // and sending the full order with navigation properties (items, product) can cause 
-      // Entity Framework tracking errors.
-      body: JSON.stringify({ id, status }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

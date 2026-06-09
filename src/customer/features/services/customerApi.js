@@ -20,7 +20,7 @@ export const getCategoryById = async (id) => {
 
 // list all product
 export const getProduct = async () => {
-  const res = await fetch(`${API_URL}/Product`);
+  const res = await fetch(`${API_URL}/Product?limit=1000`);
   if (!res.ok) {
     throw new Error("Failed to fetch product");
   }
@@ -82,7 +82,7 @@ export const checkPaymentStatus = async (invoice) => {
 // Search products by name
 export const searchProductsByName = async (name) => {
   const res = await fetch(
-    `${API_URL}/Product?name=${encodeURIComponent(name)}`,
+    `${API_URL}/Product?limit=1000&name=${encodeURIComponent(name)}`,
   );
   if (!res.ok) {
     throw new Error("Failed to search products");

@@ -50,23 +50,27 @@ export default function StaffDashboard() {
       .withAutomaticReconnect()
       .build();
 
-    connection.on('ReceiveNewOrder', (order) => {
+    connection.on('ReceiveNewOrder', async (order) => {
       console.log('New order received via SignalR:', order);
-      setOrders((prev) => {
-        // Prevent duplicate orders just in case
-        if (prev.some(o => o.id === order.id)) return prev;
-        // Ensure new orders have a status so they render in the Pending column
-        const newOrder = { ...order, status: order.status || 'Pending' };
-        return [...prev, newOrder];
-      });
+      const data = await fetchOrders();
+      if (data && data.orders) {
+        setOrders(data.orders);
+        setApiRevenue(data.totalAllAmount || 0);
+      } else if (Array.isArray(data)) {
+        setOrders(data);
+      }
     });
 
     // Keeping status update hook in case it is migrated to SignalR as well
-    connection.on('orderStatusUpdated', (updatedOrder) => {
+    connection.on('orderStatusUpdated', async (updatedOrder) => {
       console.log('Order status updated:', updatedOrder);
-      setOrders((prev) =>
-        prev.map(o => o.id === updatedOrder.id ? updatedOrder : o)
-      );
+      const data = await fetchOrders();
+      if (data && data.orders) {
+        setOrders(data.orders);
+        setApiRevenue(data.totalAllAmount || 0);
+      } else if (Array.isArray(data)) {
+        setOrders(data);
+      }
     });
 
     connection.start()
@@ -80,10 +84,12 @@ export default function StaffDashboard() {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
+      const orderToUpdate = orders.find(o => o.id === id);
+      
       // Optimistic UI update
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
 
-      await updateOrderStatus(id, newStatus);
+      await updateOrderStatus(id, newStatus, orderToUpdate);
     } catch (err) {
       console.error('Failed to update status', err);
       // Revert if failed by re-fetching

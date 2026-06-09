@@ -2,7 +2,7 @@ import { fetchWithAuth } from '../../auth/api/fetchWithAuth';
 const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7293/api';
 
 export const getProducts = async () => {
-  const res = await fetchWithAuth(`${API_URL}/Product`);
+  const res = await fetchWithAuth(`${API_URL}/Product?limit=1000`);
   if (!res.ok) throw new Error("Failed to fetch products");
   return res.json();
 };

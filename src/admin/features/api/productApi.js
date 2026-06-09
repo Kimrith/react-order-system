@@ -8,11 +8,12 @@ const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 /** Fetch all products */
 export const fetchProducts = async (categoryId = null, searchTerm = '', discountStatus = null) => {
     const params = new URLSearchParams();
+    params.append('limit', '1000'); // bypass backend default limit
     if (categoryId) params.append('CategoryId', categoryId);
     if (searchTerm) params.append('SearchTerm', searchTerm);
     if (discountStatus) params.append('DiscountStatus', discountStatus);
     const queryString = params.toString();
-    const url = `${BASE_URL}/Product${queryString ? `?${queryString}` : ''}`;
+    const url = `${BASE_URL}/Product?${queryString}`;
 
     const res = await fetchWithAuth(url);
     if (!res.ok) throw new Error('Failed to fetch products');
